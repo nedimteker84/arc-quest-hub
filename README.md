@@ -1,57 +1,58 @@
-# Sample Hardhat 3 Project (`node:test` and `viem`)
+# Arc Quest Hub
 
-This project showcases a Hardhat 3 project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+Arc Quest Hub is a daily activity mini app built for Arc Testnet builders.
 
-To learn more about Hardhat 3, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3](https://hardhat.org/hardhat3-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+Users can connect their wallet, verify their wallet, switch to Arc Testnet, complete an onchain daily check-in, track XP, build a streak, view transaction confirmation, and follow badge progress.
 
-## Project Overview
+## Live Demo
 
-This example project includes:
+https://arc-quest-hub.vercel.app
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+## GitHub
 
-## Usage
+https://github.com/nedimteker84/arc-quest-hub
 
-### Running Tests
+## Features
 
-To run all the tests in the project, execute the following command:
+* Wallet connect
+* Arc Testnet detection
+* Automatic Arc Testnet switch
+* Wallet verification
+* Onchain daily check-in
+* Smart contract deployed on Arc Testnet
+* Transaction hash confirmation
+* Arc explorer link
+* XP system
+* Builder Score
+* Daily streak
+* Badge progress
+* Leaderboard
+* Responsive UI
+* Vercel deployment
 
-```shell
-npx hardhat test
-```
+## Smart Contract
 
-You can also selectively run the Solidity or `node:test` tests:
+CheckIn contract deployed on Arc Testnet:
 
-```shell
-npx hardhat test solidity
-npx hardhat test nodejs
-```
+`0x4A37492539270A97c44F90DFc889EA742DF68497`
 
-### Make a deployment to Sepolia
+## Tech Stack
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* Wagmi
+* Viem
+* Hardhat
+* Solidity
+* Vercel
 
-To run the deployment to a local chain:
+## Purpose
 
-```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
-```
+Arc Quest Hub is an MVP for a builder activity layer on Arc Testnet.
+The goal is to give users a simple daily ritual that creates real onchain activity while tracking builder progress through XP, streaks, badges, and leaderboard data.
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+## Status
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
-
-```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
-```
-
-After setting the variable, you can run the deployment with the Sepolia network:
-
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
-```
+MVP v1 is live.
