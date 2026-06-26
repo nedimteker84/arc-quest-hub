@@ -9,24 +9,29 @@ import { arcTestnet } from "../lib/chains"
 
 export function useWallet() {
   const { address, isConnected } = useAccount()
-
   const chainId = useChainId()
 
-  const { connect, connectors, isPending } = useConnect()
-
+  const { connect, connectors, isPending, reset } = useConnect()
   const { disconnect } = useDisconnect()
-
   const { switchChain } = useSwitchChain()
 
-  const injectedConnector = connectors[0]
+  const injectedConnector =
+    connectors.find((connector) => connector.id === "injected") ??
+    connectors[0]
 
   function connectWallet() {
-    if (!injectedConnector) return
+    if (!injectedConnector) {
+      alert("Wallet connector not found. Please refresh the page.")
+      return
+    }
+
+    reset()
     connect({ connector: injectedConnector })
   }
 
   function disconnectWallet() {
     disconnect()
+    reset()
   }
 
   function switchToArc() {
