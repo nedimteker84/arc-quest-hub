@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-c7e194c017a417d43d861df04563e21caee39b3c",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.9.0"
+  },
+  "userSourceNameMap": {
+    "contracts/CheckIn.sol": "project/contracts/CheckIn.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/CheckIn.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.28;\r\n\r\ncontract CheckIn {\r\n    struct UserStats {\r\n        uint256 totalCheckIns;\r\n        uint256 lastCheckInDay;\r\n    }\r\n\r\n    mapping(address => UserStats) private userStats;\r\n\r\n    event CheckedIn(\r\n        address indexed user,\r\n        uint256 indexed day,\r\n        uint256 totalCheckIns\r\n    );\r\n\r\n    function checkIn() external {\r\n        uint256 currentDay = block.timestamp / 1 days;\r\n\r\n        require(\r\n            userStats[msg.sender].lastCheckInDay < currentDay,\r\n            \"Already checked in today\"\r\n        );\r\n\r\n        userStats[msg.sender].totalCheckIns += 1;\r\n        userStats[msg.sender].lastCheckInDay = currentDay;\r\n\r\n        emit CheckedIn(\r\n            msg.sender,\r\n            currentDay,\r\n            userStats[msg.sender].totalCheckIns\r\n        );\r\n    }\r\n\r\n    function getMyStats() external view returns (\r\n        uint256 totalCheckIns,\r\n        uint256 lastCheckInDay\r\n    ) {\r\n        UserStats memory stats = userStats[msg.sender];\r\n\r\n        return (\r\n            stats.totalCheckIns,\r\n            stats.lastCheckInDay\r\n        );\r\n    }\r\n\r\n    function getStats(address user) external view returns (\r\n        uint256 totalCheckIns,\r\n        uint256 lastCheckInDay\r\n    ) {\r\n        UserStats memory stats = userStats[user];\r\n\r\n        return (\r\n            stats.totalCheckIns,\r\n            stats.lastCheckInDay\r\n        );\r\n    }\r\n}"
+      }
+    }
+  }
+}
