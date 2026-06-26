@@ -11,6 +11,7 @@ import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
 import Leaderboard from "./components/Leaderboard"
 import BadgePanel from "./components/BadgePanel"
+import Footer from "./components/Footer"
 
 import { useWallet } from "./hooks/useWallet"
 import { useDailyCheckIn } from "./hooks/useDailyCheckIn"
@@ -206,6 +207,8 @@ function App() {
         />
 
         <TxStatusCard txHash={txHash} />
+
+        <Footer />
       </section>
     </main>
   )
