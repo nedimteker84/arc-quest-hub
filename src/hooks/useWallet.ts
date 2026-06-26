@@ -7,11 +7,52 @@ import {
 } from "wagmi"
 import { arcTestnet } from "../lib/chains"
 
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
+    }
+  }
+}
+
+async function forceArcInWallet() {
+  if (!window.ethereum) return
+
+  try {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: "0x4cef52" }],
+    })
+  } catch {
+    await window.ethereum.request({
+      method: "wallet_addEthereumChain",
+      params: [
+        {
+          chainId: "0x4cef52",
+          chainName: "Arc Testnet",
+          nativeCurrency: {
+            name: "USDC",
+            symbol: "USDC",
+            decimals: 18,
+          },
+          rpcUrls: ["https://rpc.testnet.arc.network"],
+          blockExplorerUrls: ["https://testnet.arcscan.app"],
+        },
+      ],
+    })
+
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: "0x4cef52" }],
+    })
+  }
+}
+
 export function useWallet() {
   const { address, isConnected } = useAccount()
   const chainId = useChainId()
 
-  const { connect, connectors, isPending } = useConnect()
+  const { connectAsync, connectors, isPending } = useConnect()
   const { disconnect } = useDisconnect()
   const { switchChain } = useSwitchChain()
 
@@ -19,13 +60,15 @@ export function useWallet() {
     connectors.find((connector) => connector.id === "injected") ??
     connectors[0]
 
-  function connectWallet() {
+  async function connectWallet() {
     if (!injectedConnector) {
       alert("Wallet connector not found. Please refresh the page.")
       return
     }
 
-    connect({ connector: injectedConnector })
+    await forceArcInWallet()
+    await connectAsync({ connector: injectedConnector })
+    await forceArcInWallet()
   }
 
   function disconnectWallet() {
@@ -36,7 +79,9 @@ export function useWallet() {
     }, 300)
   }
 
-  function switchToArc() {
+  async function switchToArc() {
+    await forceArcInWallet()
+
     switchChain({
       chainId: arcTestnet.id,
     })
