@@ -11,7 +11,7 @@ export function useWallet() {
   const { address, isConnected } = useAccount()
   const chainId = useChainId()
 
-  const { connect, connectors, isPending, reset } = useConnect()
+  const { connect, connectors, isPending } = useConnect()
   const { disconnect } = useDisconnect()
   const { switchChain } = useSwitchChain()
 
@@ -25,13 +25,15 @@ export function useWallet() {
       return
     }
 
-    reset()
     connect({ connector: injectedConnector })
   }
 
   function disconnectWallet() {
     disconnect()
-    reset()
+
+    setTimeout(() => {
+      window.location.reload()
+    }, 300)
   }
 
   function switchToArc() {
