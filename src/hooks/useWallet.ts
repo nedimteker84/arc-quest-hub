@@ -1,34 +1,53 @@
+import { useEffect, useState } from "react"
 import {
   useAccount,
-  useChainId,
   useConnect,
   useDisconnect,
   useSwitchChain,
 } from "wagmi"
 import { arcTestnet } from "../lib/chains"
 
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
-    }
-  }
+const ARC_CHAIN_HEX = "0x4cef52"
+
+type WalletProvider = {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
+  on?: (event: string, callback: (...args: unknown[]) => void) => void
+  removeListener?: (
+    event: string,
+    callback: (...args: unknown[]) => void,
+  ) => void
+}
+
+function getProvider() {
+  return window.ethereum as WalletProvider | undefined
+}
+
+async function getWalletChainId() {
+  const provider = getProvider()
+  if (!provider) return 0
+
+  const chainId = await provider.request({
+    method: "eth_chainId",
+  })
+
+  return Number(chainId)
 }
 
 async function forceArcInWallet() {
-  if (!window.ethereum) return
+  const provider = getProvider()
+  if (!provider) return
 
   try {
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: "0x4cef52" }],
+      params: [{ chainId: ARC_CHAIN_HEX }],
     })
   } catch {
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_addEthereumChain",
       params: [
         {
-          chainId: "0x4cef52",
+          chainId: ARC_CHAIN_HEX,
           chainName: "Arc Testnet",
           nativeCurrency: {
             name: "USDC",
@@ -41,24 +60,44 @@ async function forceArcInWallet() {
       ],
     })
 
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: "0x4cef52" }],
+      params: [{ chainId: ARC_CHAIN_HEX }],
     })
   }
 }
 
 export function useWallet() {
   const { address, isConnected } = useAccount()
-  const chainId = useChainId()
-
   const { connectAsync, connectors, isPending } = useConnect()
   const { disconnect } = useDisconnect()
   const { switchChain } = useSwitchChain()
 
+  const [chainId, setChainId] = useState(0)
+
   const injectedConnector =
     connectors.find((connector) => connector.id === "injected") ??
     connectors[0]
+
+  useEffect(() => {
+    async function syncChain() {
+      const currentChainId = await getWalletChainId()
+      setChainId(currentChainId)
+    }
+
+    syncChain()
+
+    function handleChainChanged(nextChainId: unknown) {
+      setChainId(Number(nextChainId))
+    }
+
+    const provider = getProvider()
+    provider?.on?.("chainChanged", handleChainChanged)
+
+    return () => {
+      provider?.removeListener?.("chainChanged", handleChainChanged)
+    }
+  }, [])
 
   async function connectWallet() {
     if (!injectedConnector) {
@@ -68,7 +107,9 @@ export function useWallet() {
 
     await forceArcInWallet()
     await connectAsync({ connector: injectedConnector })
-    await forceArcInWallet()
+
+    const currentChainId = await getWalletChainId()
+    setChainId(currentChainId)
   }
 
   function disconnectWallet() {
@@ -85,6 +126,9 @@ export function useWallet() {
     switchChain({
       chainId: arcTestnet.id,
     })
+
+    const currentChainId = await getWalletChainId()
+    setChainId(currentChainId)
   }
 
   const shortAddress = address
