@@ -1,4 +1,5 @@
 import { useRef } from "react"
+import jsPDF from "jspdf"
 import {
   createPassport,
   nextPassportGoal,
@@ -39,21 +40,26 @@ function BuilderPassport({
   const completion = passportCompletion(passport)
   const nextGoal = nextPassportGoal(passport)
 
-  async function downloadPassportPng() {
+  async function getPassportCanvas() {
     const element = passportRef.current
 
     if (!element) {
       alert("Passport card not ready.")
-      return
+      return null
     }
 
     const html2canvas = await import("html2canvas")
 
-    const canvas = await html2canvas.default(element, {
+    return html2canvas.default(element, {
       backgroundColor: "#020617",
       scale: 2,
       useCORS: true,
     })
+  }
+
+  async function downloadPassportPng() {
+    const canvas = await getPassportCanvas()
+    if (!canvas) return
 
     const image = canvas.toDataURL("image/png")
     const link = document.createElement("a")
@@ -61,6 +67,29 @@ function BuilderPassport({
     link.href = image
     link.download = "arc-builder-passport.png"
     link.click()
+  }
+
+  async function downloadPassportPdf() {
+    const canvas = await getPassportCanvas()
+    if (!canvas) return
+
+    const image = canvas.toDataURL("image/png")
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "px",
+      format: [canvas.width, canvas.height],
+    })
+
+    pdf.addImage(image, "PNG", 0, 0, canvas.width, canvas.height)
+    pdf.save("arc-builder-passport.pdf")
+  }
+
+  function sharePassportOnX() {
+    const text = encodeURIComponent(
+      `I just generated my Arc Builder Passport.\n\nXP: ${passport.xp}\nBuilder Score: ${passport.builderScore}\nReputation: ${passport.reputation}/100\nLevel: ${passport.level}\n\nBuilt with Arc Quest Hub.`,
+    )
+
+    window.open(`https://x.com/intent/tweet?text=${text}`, "_blank")
   }
 
   return (
@@ -117,9 +146,15 @@ function BuilderPassport({
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <PassportMetric title="XP" value={passport.xp} />
             <PassportMetric title="Score" value={passport.builderScore} />
-            <PassportMetric title="Reputation" value={`${passport.reputation}/100`} />
+            <PassportMetric
+              title="Reputation"
+              value={`${passport.reputation}/100`}
+            />
             <PassportMetric title="Check-ins" value={passport.totalCheckIns} />
-            <PassportMetric title="Current Streak" value={passport.currentStreak} />
+            <PassportMetric
+              title="Current Streak"
+              value={passport.currentStreak}
+            />
             <PassportMetric title="Best Streak" value={passport.bestStreak} />
           </div>
 
@@ -154,9 +189,7 @@ function BuilderPassport({
                   key={badge}
                   className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4"
                 >
-                  <p className="font-black text-emerald-300">
-                    🏅 {badge}
-                  </p>
+                  <p className="font-black text-emerald-300">🏅 {badge}</p>
                 </div>
               ))}
             </div>
@@ -177,9 +210,17 @@ function BuilderPassport({
               <button
                 type="button"
                 className="rounded-xl bg-cyan-600 px-4 py-3 font-bold text-white hover:bg-cyan-500"
-                onClick={() => alert("PDF export will be added next.")}
+                onClick={downloadPassportPdf}
               >
                 Download Passport PDF
+              </button>
+
+              <button
+                type="button"
+                className="rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-500"
+                onClick={sharePassportOnX}
+              >
+                Share Passport on X
               </button>
 
               <button
@@ -208,13 +249,9 @@ function PassportMetric({
 }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-      <p className="text-xs uppercase tracking-wide text-slate-500">
-        {title}
-      </p>
+      <p className="text-xs uppercase tracking-wide text-slate-500">{title}</p>
 
-      <p className="mt-2 text-2xl font-black text-white">
-        {value}
-      </p>
+      <p className="mt-2 text-2xl font-black text-white">{value}</p>
     </div>
   )
 }
