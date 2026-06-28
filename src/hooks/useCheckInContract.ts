@@ -1,22 +1,37 @@
-import { useEffect, useState } from "react"
-import { createPublicClient, http, parseAbiItem } from "viem"
+import { useCallback, useEffect, useState } from "react"
+import { createPublicClient, http } from "viem"
 import { useAccount, useWriteContract } from "wagmi"
 import { arcTestnet } from "../lib/chains"
 
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
-    }
-  }
+const CONTRACT_ADDRESS =
+  "0x5EC5c07eF14acBD9C2a1a49F260978BA7977F5f0" as const
+
+const ARC_CHAIN_HEX = "0x4cef52"
+
+type WalletProvider = {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
 }
 
-const CONTRACT_ADDRESS =
-  "0x4A37492539270A97c44F90DFc889EA742DF68497" as const
+type BuilderStats = {
+  totalCheckIns: number
+  totalXp: number
+  currentStreak: number
+  bestStreak: number
+  lastCheckInDay: number
+  builderScore: number
+  registered: boolean
+}
 
-const CONTRACT_DEPLOY_BLOCK = 48700000n
+export type LeaderboardRow = {
+  rank: number
+  wallet: string
+  score: number
+  streak: number
+  checkIns: number
+  isYou?: boolean
+}
 
-const CHECK_IN_ABI = [
+const ARC_QUEST_HUB_ABI = [
   {
     type: "function",
     name: "checkIn",
@@ -28,21 +43,47 @@ const CHECK_IN_ABI = [
     type: "function",
     name: "getStats",
     stateMutability: "view",
-    inputs: [{ name: "user", type: "address" }],
+    inputs: [{ name: "builder", type: "address" }],
     outputs: [
       { name: "totalCheckIns", type: "uint256" },
+      { name: "totalXp", type: "uint256" },
+      { name: "currentStreak", type: "uint256" },
+      { name: "bestStreak", type: "uint256" },
       { name: "lastCheckInDay", type: "uint256" },
+      { name: "builderScore", type: "uint256" },
+      { name: "registered", type: "bool" },
     ],
+  },
+  {
+    type: "function",
+    name: "hasCheckedInToday",
+    stateMutability: "view",
+    inputs: [{ name: "builder", type: "address" }],
+    outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "getBuilderCount",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "getBuilderAt",
+    stateMutability: "view",
+    inputs: [{ name: "index", type: "uint256" }],
+    outputs: [{ name: "", type: "address" }],
   },
 ] as const
 
-export type LeaderboardRow = {
-  rank: number
-  wallet: string
-  score: number
-  streak: number
-  checkIns: number
-  isYou: boolean
+const publicClient = createPublicClient({
+  chain: arcTestnet,
+  transport: http("https://rpc.testnet.arc.network"),
+})
+
+function getProvider() {
+  return (window as unknown as { ethereum?: WalletProvider }).ethereum
 }
 
 function getErrorMessage(error: unknown) {
@@ -50,24 +91,44 @@ function getErrorMessage(error: unknown) {
   return "Unknown transaction error."
 }
 
-function getCurrentUtcDay() {
-  return Math.floor(Date.now() / 1000 / 86400)
+function shortWallet(address: string) {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
+function toNumber(value: bigint) {
+  return Number(value)
+}
+
+function emptyStats(): BuilderStats {
+  return {
+    totalCheckIns: 0,
+    totalXp: 0,
+    currentStreak: 0,
+    bestStreak: 0,
+    lastCheckInDay: 0,
+    builderScore: 0,
+    registered: false,
+  }
 }
 
 async function forceSwitchToArcTestnet() {
-  if (!window.ethereum) throw new Error("Wallet provider not found.")
+  const provider = getProvider()
+
+  if (!provider) {
+    throw new Error("Wallet provider not found.")
+  }
 
   try {
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: "0x4cef52" }],
+      params: [{ chainId: ARC_CHAIN_HEX }],
     })
   } catch {
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_addEthereumChain",
       params: [
         {
-          chainId: "0x4cef52",
+          chainId: ARC_CHAIN_HEX,
           chainName: "Arc Testnet",
           nativeCurrency: {
             name: "USDC",
@@ -79,99 +140,122 @@ async function forceSwitchToArcTestnet() {
         },
       ],
     })
+
+    await provider.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: ARC_CHAIN_HEX }],
+    })
   }
 }
-
-const publicClient = createPublicClient({
-  chain: arcTestnet,
-  transport: http("https://rpc.testnet.arc.network"),
-})
 
 export function useCheckInContract() {
   const { address } = useAccount()
   const { writeContractAsync } = useWriteContract()
 
   const [loading, setLoading] = useState(false)
-  const [onchainTotalCheckIns, setOnchainTotalCheckIns] = useState(0)
-  const [onchainLastCheckInDay, setOnchainLastCheckInDay] = useState(0)
+  const [stats, setStats] = useState<BuilderStats>(emptyStats())
   const [hasCheckedInTodayOnchain, setHasCheckedInTodayOnchain] =
     useState(false)
   const [leaderboardRows, setLeaderboardRows] = useState<LeaderboardRow[]>([])
 
-  async function refreshLeaderboard(currentTotal = 0) {
-    const map = new Map<string, number>()
-
-    try {
-      const logs = await publicClient.getLogs({
-        address: CONTRACT_ADDRESS,
-        event: parseAbiItem(
-          "event CheckedIn(address indexed user, uint256 indexed day, uint256 totalCheckIns)",
-        ),
-        fromBlock: CONTRACT_DEPLOY_BLOCK,
-        toBlock: "latest",
-      })
-
-      for (const log of logs) {
-        const user = String(log.args.user).toLowerCase()
-        const total = Number(log.args.totalCheckIns ?? 0)
-        map.set(user, Math.max(map.get(user) ?? 0, total))
-      }
-    } catch (error) {
-      console.error("Failed to read leaderboard logs:", error)
-    }
-
-    if (address && currentTotal > 0) {
-      const you = address.toLowerCase()
-      map.set(you, Math.max(map.get(you) ?? 0, currentTotal))
-    }
-
-    const rows = Array.from(map.entries())
-      .map(([wallet, checkIns]) => ({
-        wallet,
-        checkIns,
-        score: checkIns * 15,
-        streak: checkIns > 0 ? 1 : 0,
-        isYou: address ? wallet === address.toLowerCase() : false,
-      }))
-      .sort((a, b) => b.score - a.score)
-      .map((row, index) => ({
-        rank: index + 1,
-        ...row,
-      }))
-
-    setLeaderboardRows(rows)
-  }
-
-  async function refreshOnchainStats() {
+  const loadBuilderStats = useCallback(async () => {
     if (!address) {
-      setOnchainTotalCheckIns(0)
-      setOnchainLastCheckInDay(0)
+      setStats(emptyStats())
       setHasCheckedInTodayOnchain(false)
-      setLeaderboardRows([])
       return
     }
 
     try {
-      const [totalCheckIns, lastCheckInDay] = await publicClient.readContract({
+      const result = await publicClient.readContract({
         address: CONTRACT_ADDRESS,
-        abi: CHECK_IN_ABI,
+        abi: ARC_QUEST_HUB_ABI,
         functionName: "getStats",
         args: [address],
       })
 
-      const total = Number(totalCheckIns)
-      const lastDay = Number(lastCheckInDay)
-      const today = getCurrentUtcDay()
+      setStats({
+        totalCheckIns: toNumber(result[0]),
+        totalXp: toNumber(result[1]),
+        currentStreak: toNumber(result[2]),
+        bestStreak: toNumber(result[3]),
+        lastCheckInDay: toNumber(result[4]),
+        builderScore: toNumber(result[5]),
+        registered: result[6],
+      })
 
-      setOnchainTotalCheckIns(total)
-      setOnchainLastCheckInDay(lastDay)
-      setHasCheckedInTodayOnchain(lastDay === today)
+      const checkedToday = await publicClient.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: ARC_QUEST_HUB_ABI,
+        functionName: "hasCheckedInToday",
+        args: [address],
+      })
 
-      await refreshLeaderboard(total)
+      setHasCheckedInTodayOnchain(checkedToday)
     } catch (error) {
-      console.error("Failed to read onchain stats:", error)
+      console.error("Failed to load builder stats:", error)
+      setStats(emptyStats())
+      setHasCheckedInTodayOnchain(false)
     }
-  }
+  }, [address])
+
+  const loadLeaderboard = useCallback(async () => {
+    try {
+      const count = await publicClient.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: ARC_QUEST_HUB_ABI,
+        functionName: "getBuilderCount",
+      })
+
+      const builderCount = Math.min(Number(count), 20)
+      const rows: LeaderboardRow[] = []
+
+      for (let index = 0; index < builderCount; index += 1) {
+        const builderAddress = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: ARC_QUEST_HUB_ABI,
+          functionName: "getBuilderAt",
+          args: [BigInt(index)],
+        })
+
+        const builderStats = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: ARC_QUEST_HUB_ABI,
+          functionName: "getStats",
+          args: [builderAddress],
+        })
+
+        rows.push({
+          rank: 0,
+          wallet: shortWallet(builderAddress),
+          score: toNumber(builderStats[5]),
+          streak: toNumber(builderStats[2]),
+          checkIns: toNumber(builderStats[0]),
+          isYou: address?.toLowerCase() === builderAddress.toLowerCase(),
+        })
+      }
+
+      setLeaderboardRows(
+        rows
+          .sort((a, b) => b.score - a.score)
+          .map((row, index) => ({
+            ...row,
+            rank: index + 1,
+          })),
+      )
+    } catch (error) {
+      console.error("Failed to load leaderboard:", error)
+      setLeaderboardRows([])
+    }
+  }, [address])
+
+  const refresh = useCallback(async () => {
+    await loadBuilderStats()
+    await loadLeaderboard()
+  }, [loadBuilderStats, loadLeaderboard])
+
+  useEffect(() => {
+    refresh()
+  }, [refresh])
 
   async function checkIn() {
     if (!address) {
@@ -186,7 +270,7 @@ export function useCheckInContract() {
 
       const hash = await writeContractAsync({
         address: CONTRACT_ADDRESS,
-        abi: CHECK_IN_ABI,
+        abi: ARC_QUEST_HUB_ABI,
         functionName: "checkIn",
         account: address,
         chainId: arcTestnet.id,
@@ -194,10 +278,7 @@ export function useCheckInContract() {
 
       await publicClient.waitForTransactionReceipt({ hash })
 
-      const walletKey = address.toLowerCase()
-      localStorage.setItem(`arcQuest:${walletKey}:lastTxHash`, hash)
-
-      await refreshOnchainStats()
+      await refresh()
 
       return hash
     } catch (error) {
@@ -209,17 +290,18 @@ export function useCheckInContract() {
     }
   }
 
-  useEffect(() => {
-    refreshOnchainStats()
-  }, [address])
-
   return {
     loading,
     checkIn,
-    refreshOnchainStats,
-    onchainTotalCheckIns,
-    onchainLastCheckInDay,
+    refresh,
     hasCheckedInTodayOnchain,
+    onchainTotalCheckIns: stats.totalCheckIns,
+    onchainTotalXp: stats.totalXp,
+    onchainCurrentStreak: stats.currentStreak,
+    onchainBestStreak: stats.bestStreak,
+    onchainBuilderScore: stats.builderScore,
+    onchainLastCheckInDay: stats.lastCheckInDay,
+    onchainRegistered: stats.registered,
     leaderboardRows,
   }
 }

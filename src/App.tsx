@@ -15,8 +15,6 @@ import ProjectOwnership from "./components/ProjectOwnership"
 import Footer from "./components/Footer"
 
 import { useWallet } from "./hooks/useWallet"
-import { useDailyCheckIn } from "./hooks/useDailyCheckIn"
-import { useStreak } from "./hooks/useStreak"
 import { useWalletVerification } from "./hooks/useWalletVerification"
 import { useArcNetwork } from "./hooks/useArcNetwork"
 import { useCheckInContract } from "./hooks/useCheckInContract"
@@ -41,21 +39,16 @@ function App() {
     checkIn: onchainCheckIn,
     hasCheckedInTodayOnchain,
     onchainTotalCheckIns,
+    onchainTotalXp,
+    onchainCurrentStreak,
+    onchainBuilderScore,
     leaderboardRows,
   } = useCheckInContract()
 
-  const [xp, setXp] = useState(0)
-  const [completedQuestIds, setCompletedQuestIds] = useState<string[]>([])
-  const [streak, setStreak] = useState(0)
   const [txHash, setTxHash] = useState("")
 
   const walletKey = address ? address.toLowerCase() : "guest"
-  const xpStorageKey = `arcQuest:${walletKey}:xp`
-  const questsStorageKey = `arcQuest:${walletKey}:completedQuestIds`
   const txStorageKey = `arcQuest:${walletKey}:lastTxHash`
-
-  const { saveDailyCheckIn, clearDailyCheckIn } = useDailyCheckIn(walletKey)
-  const { currentStreak, updateStreak, clearStreak } = useStreak(walletKey)
 
   const {
     isWalletVerified,
@@ -65,17 +58,9 @@ function App() {
   } = useWalletVerification(walletKey)
 
   useEffect(() => {
-    const savedXp = localStorage.getItem(xpStorageKey)
-    const savedCompletedQuestIds = localStorage.getItem(questsStorageKey)
     const savedTxHash = localStorage.getItem(txStorageKey)
-
-    setXp(savedXp ? Number(savedXp) : 0)
-    setCompletedQuestIds(
-      savedCompletedQuestIds ? JSON.parse(savedCompletedQuestIds) : [],
-    )
-    setStreak(currentStreak)
     setTxHash(savedTxHash ?? "")
-  }, [xpStorageKey, questsStorageKey, txStorageKey, currentStreak])
+  }, [txStorageKey])
 
   async function completeQuest(quest: Quest) {
     if (!isConnected) {
@@ -100,59 +85,27 @@ function App() {
       return
     }
 
-    if (quest.id !== "daily-check-in" && completedQuestIds.includes(quest.id)) {
-      return
-    }
-
     if (quest.id === "daily-check-in") {
       const hash = await onchainCheckIn()
       if (!hash) return
 
       setTxHash(hash)
       localStorage.setItem(txStorageKey, hash)
-
-      saveDailyCheckIn()
-      const newStreak = updateStreak()
-      setStreak(newStreak)
     }
-
-    const newXp = xp + quest.xp
-
-    const newCompletedQuestIds =
-      quest.id === "daily-check-in"
-        ? completedQuestIds
-        : [...completedQuestIds, quest.id]
-
-    setXp(newXp)
-    setCompletedQuestIds(newCompletedQuestIds)
-
-    localStorage.setItem(xpStorageKey, String(newXp))
-    localStorage.setItem(questsStorageKey, JSON.stringify(newCompletedQuestIds))
   }
 
   function resetProgress() {
-    localStorage.removeItem(xpStorageKey)
-    localStorage.removeItem(questsStorageKey)
     localStorage.removeItem(txStorageKey)
-
-    clearDailyCheckIn()
-    clearStreak()
     clearWalletVerification()
-
-    setXp(0)
-    setCompletedQuestIds([])
-    setStreak(0)
     setTxHash("")
   }
 
   const displayCompletedQuestIds = hasCheckedInTodayOnchain
-    ? [...completedQuestIds, "daily-check-in"]
-    : completedQuestIds
+    ? ["daily-check-in"]
+    : []
 
   const completedCount = displayCompletedQuestIds.length
   const openQuestCount = quests.length - completedCount
-  const builderScore =
-    xp + completedCount * 10 + streak * 25 + onchainTotalCheckIns * 15
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -187,16 +140,19 @@ function App() {
         />
 
         <Dashboard
-          xp={xp}
-          builderScore={builderScore}
-          currentStreak={streak}
+          xp={onchainTotalXp}
+          builderScore={onchainBuilderScore}
+          currentStreak={onchainCurrentStreak}
           completedCount={completedCount}
           openQuestCount={openQuestCount}
         />
 
-        <BuilderLevelCard builderScore={builderScore} />
+        <BuilderLevelCard builderScore={onchainBuilderScore} />
 
-        <BadgePanel streak={streak} onchainCheckIns={onchainTotalCheckIns} />
+        <BadgePanel
+          streak={onchainCurrentStreak}
+          onchainCheckIns={onchainTotalCheckIns}
+        />
 
         <Leaderboard rows={leaderboardRows} />
 

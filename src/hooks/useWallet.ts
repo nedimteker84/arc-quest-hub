@@ -19,7 +19,7 @@ type WalletProvider = {
 }
 
 function getProvider() {
-  return window.ethereum as WalletProvider | undefined
+  return (window as unknown as { ethereum?: WalletProvider }).ethereum
 }
 
 async function getWalletChainId() {
