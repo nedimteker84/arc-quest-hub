@@ -6,6 +6,7 @@ import Header from "./components/Header"
 import HeroBanner from "./components/HeroBanner"
 import Dashboard from "./components/Dashboard"
 import BuilderLevelCard from "./components/BuilderLevelCard"
+import BuilderProfile from "./components/BuilderProfile"
 import NetworkCard from "./components/NetworkCard"
 import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
@@ -137,6 +138,15 @@ function App() {
           quests={quests}
           completedQuestIds={displayCompletedQuestIds}
           onComplete={completeQuest}
+        />
+
+        <BuilderProfile
+          shortAddress={shortAddress}
+          totalXp={onchainTotalXp}
+          builderScore={onchainBuilderScore}
+          currentStreak={onchainCurrentStreak}
+          totalCheckIns={onchainTotalCheckIns}
+          isConnected={isConnected}
         />
 
         <Dashboard
