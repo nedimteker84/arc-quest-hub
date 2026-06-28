@@ -27,7 +27,6 @@ function Header({
   onDisconnect,
   onSwitchToArc,
   onVerifyWallet,
-  onReset,
 }: HeaderProps) {
   return (
     <div className="flex flex-col items-center text-center">
@@ -35,9 +34,7 @@ function Header({
         A
       </div>
 
-      <h1 className="text-5xl font-bold tracking-tight">
-        Arc Quest Hub
-      </h1>
+      <h1 className="text-5xl font-bold tracking-tight">Arc Quest Hub</h1>
 
       <p className="mt-4 max-w-2xl text-lg text-slate-300">
         A safe daily activity hub for Arc builders.
@@ -57,13 +54,9 @@ function Header({
             Wallet Connected
           </p>
 
-          <p className="mt-2 text-lg font-bold text-white">
-            {shortAddress}
-          </p>
+          <p className="mt-2 text-lg font-bold text-white">{shortAddress}</p>
 
-          <p className="mt-1 text-sm text-slate-400">
-            Chain ID: {chainId}
-          </p>
+          <p className="mt-1 text-sm text-slate-400">Chain ID: {chainId}</p>
 
           <p
             className={
@@ -85,9 +78,7 @@ function Header({
               disabled={isVerifyingWallet}
               className="mt-4 w-full rounded-xl bg-cyan-600 px-4 py-3 font-semibold text-white hover:bg-cyan-500 disabled:bg-slate-700"
             >
-              {isVerifyingWallet
-                ? "Verifying..."
-                : "Verify Wallet"}
+              {isVerifyingWallet ? "Verifying..." : "Verify Wallet"}
             </button>
           )}
 
@@ -102,9 +93,7 @@ function Header({
 
       {isConnected && !isArcNetwork && (
         <div className="mt-6 max-w-xl rounded-3xl border border-yellow-500/30 bg-yellow-950/20 p-5">
-          <p className="text-lg font-bold text-yellow-300">
-            Wrong Network
-          </p>
+          <p className="text-lg font-bold text-yellow-300">Wrong Network</p>
 
           <p className="mt-2 text-sm text-slate-300">
             Please switch to Arc Testnet before completing quests.
@@ -130,13 +119,6 @@ function Header({
           </p>
         </div>
       )}
-
-      <button
-        onClick={onReset}
-        className="mt-4 rounded-xl border border-white/10 px-5 py-2 text-sm text-slate-300 hover:bg-white/10"
-      >
-        Reset Progress
-      </button>
     </div>
   )
 }
