@@ -11,6 +11,7 @@ import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
 import Leaderboard from "./components/Leaderboard"
 import BadgePanel from "./components/BadgePanel"
+import ProjectOwnership from "./components/ProjectOwnership"
 import Footer from "./components/Footer"
 
 import { useWallet } from "./hooks/useWallet"
@@ -174,11 +175,11 @@ function App() {
         <HeroBanner />
 
         <QuestSection
-          title="Daily Quests"
+          title="Daily Quest"
           description={
             isOnchainCheckInLoading
               ? "Onchain check-in transaction is pending..."
-              : `Start with GM, GN or your onchain daily check-in. Onchain check-ins: ${onchainTotalCheckIns}`
+              : `Complete your verified onchain daily check-in. Onchain check-ins: ${onchainTotalCheckIns}`
           }
           quests={quests}
           completedQuestIds={displayCompletedQuestIds}
@@ -207,6 +208,8 @@ function App() {
         />
 
         <TxStatusCard txHash={txHash} />
+
+        <ProjectOwnership />
 
         <Footer />
       </section>
