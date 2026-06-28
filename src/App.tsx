@@ -12,6 +12,7 @@ import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
 import Leaderboard from "./components/Leaderboard"
 import BadgePanel from "./components/BadgePanel"
+import ActivityTimeline from "./components/ActivityTimeline"
 import ProjectOwnership from "./components/ProjectOwnership"
 import Footer from "./components/Footer"
 
@@ -46,6 +47,7 @@ function App() {
     onchainBuilderScore,
     onchainRegistered,
     leaderboardRows,
+    historyRecords,
   } = useCheckInContract()
 
   const [txHash, setTxHash] = useState("")
@@ -167,6 +169,8 @@ function App() {
           streak={onchainCurrentStreak}
           onchainCheckIns={onchainTotalCheckIns}
         />
+
+        <ActivityTimeline records={historyRecords} />
 
         <Leaderboard rows={leaderboardRows} />
 

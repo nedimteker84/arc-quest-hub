@@ -4,7 +4,7 @@ import { useAccount, useWriteContract } from "wagmi"
 import { arcTestnet } from "../lib/chains"
 
 const CONTRACT_ADDRESS =
-  "0x5EC5c07eF14acBD9C2a1a49F260978BA7977F5f0" as const
+  "0x9c4A47D7Ea291905393Fef8878E2322138968bDE" as const
 
 const ARC_CHAIN_HEX = "0x4cef52"
 
@@ -19,6 +19,7 @@ type BuilderStats = {
   bestStreak: number
   lastCheckInDay: number
   builderScore: number
+  joinedAt: number
   registered: boolean
 }
 
@@ -29,6 +30,16 @@ export type LeaderboardRow = {
   streak: number
   checkIns: number
   isYou?: boolean
+}
+
+export type CheckInHistoryRecord = {
+  day: number
+  timestamp: number
+  blockNumber: number
+  xpEarned: number
+  totalXpAfter: number
+  streakAfter: number
+  builderScoreAfter: number
 }
 
 const ARC_QUEST_HUB_ABI = [
@@ -51,6 +62,7 @@ const ARC_QUEST_HUB_ABI = [
       { name: "bestStreak", type: "uint256" },
       { name: "lastCheckInDay", type: "uint256" },
       { name: "builderScore", type: "uint256" },
+      { name: "joinedAt", type: "uint256" },
       { name: "registered", type: "bool" },
     ],
   },
@@ -74,6 +86,31 @@ const ARC_QUEST_HUB_ABI = [
     stateMutability: "view",
     inputs: [{ name: "index", type: "uint256" }],
     outputs: [{ name: "", type: "address" }],
+  },
+  {
+    type: "function",
+    name: "getHistoryLength",
+    stateMutability: "view",
+    inputs: [{ name: "builder", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "getHistoryRecord",
+    stateMutability: "view",
+    inputs: [
+      { name: "builder", type: "address" },
+      { name: "index", type: "uint256" },
+    ],
+    outputs: [
+      { name: "day", type: "uint256" },
+      { name: "timestamp", type: "uint256" },
+      { name: "blockNumber", type: "uint256" },
+      { name: "xpEarned", type: "uint256" },
+      { name: "totalXpAfter", type: "uint256" },
+      { name: "streakAfter", type: "uint256" },
+      { name: "builderScoreAfter", type: "uint256" },
+    ],
   },
 ] as const
 
@@ -107,6 +144,7 @@ function emptyStats(): BuilderStats {
     bestStreak: 0,
     lastCheckInDay: 0,
     builderScore: 0,
+    joinedAt: 0,
     registered: false,
   }
 }
@@ -157,11 +195,15 @@ export function useCheckInContract() {
   const [hasCheckedInTodayOnchain, setHasCheckedInTodayOnchain] =
     useState(false)
   const [leaderboardRows, setLeaderboardRows] = useState<LeaderboardRow[]>([])
+  const [historyRecords, setHistoryRecords] = useState<CheckInHistoryRecord[]>(
+    [],
+  )
 
   const loadBuilderStats = useCallback(async () => {
     if (!address) {
       setStats(emptyStats())
       setHasCheckedInTodayOnchain(false)
+      setHistoryRecords([])
       return
     }
 
@@ -180,7 +222,8 @@ export function useCheckInContract() {
         bestStreak: toNumber(result[3]),
         lastCheckInDay: toNumber(result[4]),
         builderScore: toNumber(result[5]),
-        registered: result[6],
+        joinedAt: toNumber(result[6]),
+        registered: result[7],
       })
 
       const checkedToday = await publicClient.readContract({
@@ -195,6 +238,51 @@ export function useCheckInContract() {
       console.error("Failed to load builder stats:", error)
       setStats(emptyStats())
       setHasCheckedInTodayOnchain(false)
+    }
+  }, [address])
+
+  const loadHistory = useCallback(async () => {
+    if (!address) {
+      setHistoryRecords([])
+      return
+    }
+
+    try {
+      const length = await publicClient.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: ARC_QUEST_HUB_ABI,
+        functionName: "getHistoryLength",
+        args: [address],
+      })
+
+      const totalRecords = Number(length)
+      const maxRecords = 5
+      const startIndex = Math.max(0, totalRecords - maxRecords)
+      const records: CheckInHistoryRecord[] = []
+
+      for (let index = totalRecords - 1; index >= startIndex; index -= 1) {
+        const record = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: ARC_QUEST_HUB_ABI,
+          functionName: "getHistoryRecord",
+          args: [address, BigInt(index)],
+        })
+
+        records.push({
+          day: toNumber(record[0]),
+          timestamp: toNumber(record[1]),
+          blockNumber: toNumber(record[2]),
+          xpEarned: toNumber(record[3]),
+          totalXpAfter: toNumber(record[4]),
+          streakAfter: toNumber(record[5]),
+          builderScoreAfter: toNumber(record[6]),
+        })
+      }
+
+      setHistoryRecords(records)
+    } catch (error) {
+      console.error("Failed to load builder history:", error)
+      setHistoryRecords([])
     }
   }, [address])
 
@@ -250,8 +338,9 @@ export function useCheckInContract() {
 
   const refresh = useCallback(async () => {
     await loadBuilderStats()
+    await loadHistory()
     await loadLeaderboard()
-  }, [loadBuilderStats, loadLeaderboard])
+  }, [loadBuilderStats, loadHistory, loadLeaderboard])
 
   useEffect(() => {
     refresh()
@@ -294,6 +383,7 @@ export function useCheckInContract() {
     loading,
     checkIn,
     refresh,
+
     hasCheckedInTodayOnchain,
     onchainTotalCheckIns: stats.totalCheckIns,
     onchainTotalXp: stats.totalXp,
@@ -301,7 +391,10 @@ export function useCheckInContract() {
     onchainBestStreak: stats.bestStreak,
     onchainBuilderScore: stats.builderScore,
     onchainLastCheckInDay: stats.lastCheckInDay,
+    onchainJoinedAt: stats.joinedAt,
     onchainRegistered: stats.registered,
+
     leaderboardRows,
+    historyRecords,
   }
 }
