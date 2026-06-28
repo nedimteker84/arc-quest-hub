@@ -3,17 +3,23 @@ type BuilderProfileProps = {
   totalXp: number
   builderScore: number
   currentStreak: number
+  bestStreak: number
   totalCheckIns: number
   isConnected: boolean
+  isRegistered: boolean
 }
 
 function getBuilderLevel(score: number) {
-  if (score >= 1000) return "Legend Builder"
-  if (score >= 500) return "Elite Builder"
-  if (score >= 250) return "Core Builder"
-  if (score >= 100) return "Active Builder"
-  if (score >= 50) return "New Builder"
-  return "Starter Builder"
+  if (score >= 1000) return "Level 5 • Legend Builder"
+  if (score >= 500) return "Level 4 • Elite Builder"
+  if (score >= 250) return "Level 3 • Core Builder"
+  if (score >= 100) return "Level 2 • Active Builder"
+  if (score >= 50) return "Level 1 • New Builder"
+  return "Level 0 • Starter Builder"
+}
+
+function getReputation(score: number, checkIns: number) {
+  return Math.min(100, score + checkIns * 5)
 }
 
 function BuilderProfile({
@@ -21,15 +27,18 @@ function BuilderProfile({
   totalXp,
   builderScore,
   currentStreak,
+  bestStreak,
   totalCheckIns,
   isConnected,
+  isRegistered,
 }: BuilderProfileProps) {
   if (!isConnected) return null
 
   const level = getBuilderLevel(builderScore)
+  const reputation = getReputation(builderScore, totalCheckIns)
 
   return (
-    <section className="mt-8 rounded-3xl border border-cyan-500/20 bg-cyan-950/10 p-7 shadow-2xl shadow-cyan-950/20">
+    <section className="mt-8 rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/30 via-slate-900 to-purple-950/20 p-7 shadow-2xl shadow-cyan-950/20">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-sm font-bold uppercase tracking-widest text-cyan-300">
@@ -37,27 +46,45 @@ function BuilderProfile({
           </p>
 
           <h2 className="mt-2 text-3xl font-black text-white">
-            {level}
+            Verified Builder
           </h2>
 
-          <p className="mt-2 text-slate-400">
-            Verified onchain builder profile for {shortAddress}.
+          <p className="mt-2 max-w-2xl text-slate-400">
+            Onchain identity profile for {shortAddress}. XP, streak, check-ins
+            and score are read from the Arc Quest Hub V1.1 contract.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-black/20 px-6 py-4 text-center">
+        <div className="rounded-2xl border border-white/10 bg-black/30 px-7 py-5 text-center">
           <p className="text-sm text-slate-400">Builder Score</p>
-          <p className="mt-1 text-4xl font-black text-cyan-300">
+          <p className="mt-1 text-5xl font-black text-cyan-300">
             {builderScore}
           </p>
         </div>
       </div>
 
-      <div className="mt-7 grid gap-4 md:grid-cols-4">
+      <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-white/10 bg-slate-950 p-4">
+          <p className="text-sm text-slate-400">Wallet</p>
+          <p className="mt-2 font-black text-white">{shortAddress}</p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-slate-950 p-4">
+          <p className="text-sm text-slate-400">Level</p>
+          <p className="mt-2 font-black text-purple-300">{level}</p>
+        </div>
+
         <div className="rounded-2xl border border-white/10 bg-slate-950 p-4">
           <p className="text-sm text-slate-400">Total XP</p>
           <p className="mt-2 text-2xl font-black text-purple-300">
             {totalXp}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-slate-950 p-4">
+          <p className="text-sm text-slate-400">Reputation</p>
+          <p className="mt-2 text-2xl font-black text-emerald-300">
+            {reputation}/100
           </p>
         </div>
 
@@ -69,16 +96,29 @@ function BuilderProfile({
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-slate-950 p-4">
+          <p className="text-sm text-slate-400">Best Streak</p>
+          <p className="mt-2 text-2xl font-black text-yellow-300">
+            {bestStreak}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-slate-950 p-4">
           <p className="text-sm text-slate-400">Onchain Check-ins</p>
-          <p className="mt-2 text-2xl font-black text-emerald-300">
+          <p className="mt-2 text-2xl font-black text-cyan-300">
             {totalCheckIns}
           </p>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-slate-950 p-4">
           <p className="text-sm text-slate-400">Identity Status</p>
-          <p className="mt-2 text-lg font-black text-green-300">
-            Verified
+          <p
+            className={
+              isRegistered
+                ? "mt-2 text-lg font-black text-green-300"
+                : "mt-2 text-lg font-black text-yellow-300"
+            }
+          >
+            {isRegistered ? "Active" : "Pending Check-in"}
           </p>
         </div>
       </div>

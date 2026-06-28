@@ -42,7 +42,9 @@ function App() {
     onchainTotalCheckIns,
     onchainTotalXp,
     onchainCurrentStreak,
+    onchainBestStreak,
     onchainBuilderScore,
+    onchainRegistered,
     leaderboardRows,
   } = useCheckInContract()
 
@@ -145,8 +147,10 @@ function App() {
           totalXp={onchainTotalXp}
           builderScore={onchainBuilderScore}
           currentStreak={onchainCurrentStreak}
+          bestStreak={onchainBestStreak}
           totalCheckIns={onchainTotalCheckIns}
           isConnected={isConnected}
+          isRegistered={onchainRegistered}
         />
 
         <Dashboard
