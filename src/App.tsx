@@ -7,6 +7,7 @@ import HeroBanner from "./components/HeroBanner"
 import Dashboard from "./components/Dashboard"
 import BuilderLevelCard from "./components/BuilderLevelCard"
 import BuilderProfile from "./components/BuilderProfile"
+import WeeklyAnalytics from "./components/WeeklyAnalytics"
 import NetworkCard from "./components/NetworkCard"
 import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
@@ -20,6 +21,7 @@ import { useWallet } from "./hooks/useWallet"
 import { useWalletVerification } from "./hooks/useWalletVerification"
 import { useArcNetwork } from "./hooks/useArcNetwork"
 import { useCheckInContract } from "./hooks/useCheckInContract"
+import { calculateReputation } from "./lib/reputation"
 
 function App() {
   const {
@@ -112,6 +114,14 @@ function App() {
   const completedCount = displayCompletedQuestIds.length
   const openQuestCount = quests.length - completedCount
 
+  const reputation = calculateReputation({
+    xp: onchainTotalXp,
+    currentStreak: onchainCurrentStreak,
+    bestStreak: onchainBestStreak,
+    totalCheckIns: onchainTotalCheckIns,
+    verified: isWalletVerified,
+  })
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-8 py-8">
@@ -154,6 +164,15 @@ function App() {
           isConnected={isConnected}
           isRegistered={onchainRegistered}
           isVerified={isWalletVerified}
+        />
+
+        <WeeklyAnalytics
+          currentStreak={onchainCurrentStreak}
+          bestStreak={onchainBestStreak}
+          totalCheckIns={onchainTotalCheckIns}
+          totalXp={onchainTotalXp}
+          builderScore={onchainBuilderScore}
+          reputation={reputation.score}
         />
 
         <Dashboard
