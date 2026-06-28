@@ -1,3 +1,5 @@
+import { calculateReputation } from "../lib/reputation"
+
 type BuilderProfileProps = {
   shortAddress: string
   totalXp: number
@@ -7,19 +9,16 @@ type BuilderProfileProps = {
   totalCheckIns: number
   isConnected: boolean
   isRegistered: boolean
+  isVerified: boolean
 }
 
 function getBuilderLevel(score: number) {
-  if (score >= 1000) return "Level 5 • Legend Builder"
-  if (score >= 500) return "Level 4 • Elite Builder"
-  if (score >= 250) return "Level 3 • Core Builder"
+  if (score >= 1500) return "Level 5 • Arc Legend"
+  if (score >= 700) return "Level 4 • Core Builder"
+  if (score >= 300) return "Level 3 • Advanced Builder"
   if (score >= 100) return "Level 2 • Active Builder"
   if (score >= 50) return "Level 1 • New Builder"
   return "Level 0 • Starter Builder"
-}
-
-function getReputation(score: number, checkIns: number) {
-  return Math.min(100, score + checkIns * 5)
 }
 
 function BuilderProfile({
@@ -31,11 +30,19 @@ function BuilderProfile({
   totalCheckIns,
   isConnected,
   isRegistered,
+  isVerified,
 }: BuilderProfileProps) {
   if (!isConnected) return null
 
   const level = getBuilderLevel(builderScore)
-  const reputation = getReputation(builderScore, totalCheckIns)
+
+  const reputation = calculateReputation({
+    xp: totalXp,
+    currentStreak,
+    bestStreak,
+    totalCheckIns,
+    verified: isVerified,
+  })
 
   return (
     <section className="mt-8 rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/30 via-slate-900 to-purple-950/20 p-7 shadow-2xl shadow-cyan-950/20">
@@ -50,8 +57,8 @@ function BuilderProfile({
           </h2>
 
           <p className="mt-2 max-w-2xl text-slate-400">
-            Onchain identity profile for {shortAddress}. XP, streak, check-ins
-            and score are read from the Arc Quest Hub V1.1 contract.
+            Onchain identity profile for {shortAddress}. XP, streak, check-ins,
+            score and activity history are read from Arc Quest Hub contracts.
           </p>
         </div>
 
@@ -83,8 +90,11 @@ function BuilderProfile({
 
         <div className="rounded-2xl border border-white/10 bg-slate-950 p-4">
           <p className="text-sm text-slate-400">Reputation</p>
-          <p className="mt-2 text-2xl font-black text-emerald-300">
-            {reputation}/100
+          <p className={`mt-2 text-2xl font-black ${reputation.color}`}>
+            {reputation.score}/100
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {reputation.level}
           </p>
         </div>
 
@@ -113,13 +123,41 @@ function BuilderProfile({
           <p className="text-sm text-slate-400">Identity Status</p>
           <p
             className={
-              isRegistered
+              isRegistered && isVerified
                 ? "mt-2 text-lg font-black text-green-300"
                 : "mt-2 text-lg font-black text-yellow-300"
             }
           >
-            {isRegistered ? "Active" : "Pending Check-in"}
+            {isRegistered && isVerified ? "Active" : "Pending"}
           </p>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-white/10 bg-slate-950 p-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-bold text-white">
+              Reputation Engine
+            </p>
+
+            <p className="mt-1 text-sm text-slate-400">
+              Reputation is calculated from XP, current streak, best streak,
+              total check-ins and wallet verification.
+            </p>
+          </div>
+
+          <div className="min-w-48">
+            <div className="h-3 overflow-hidden rounded-full bg-slate-800">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400"
+                style={{ width: `${reputation.score}%` }}
+              />
+            </div>
+
+            <p className="mt-2 text-right text-xs text-slate-500">
+              {reputation.level}
+            </p>
+          </div>
         </div>
       </div>
     </section>

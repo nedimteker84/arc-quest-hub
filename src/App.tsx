@@ -153,6 +153,7 @@ function App() {
           totalCheckIns={onchainTotalCheckIns}
           isConnected={isConnected}
           isRegistered={onchainRegistered}
+          isVerified={isWalletVerified}
         />
 
         <Dashboard
