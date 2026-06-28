@@ -1,3 +1,4 @@
+import { useRef } from "react"
 import {
   createPassport,
   nextPassportGoal,
@@ -23,6 +24,8 @@ function BuilderPassport({
   bestStreak,
   totalCheckIns,
 }: BuilderPassportProps) {
+  const passportRef = useRef<HTMLDivElement>(null)
+
   const passport = createPassport({
     wallet,
     xp: totalXp,
@@ -35,6 +38,30 @@ function BuilderPassport({
 
   const completion = passportCompletion(passport)
   const nextGoal = nextPassportGoal(passport)
+
+  async function downloadPassportPng() {
+    const element = passportRef.current
+
+    if (!element) {
+      alert("Passport card not ready.")
+      return
+    }
+
+    const html2canvas = await import("html2canvas")
+
+    const canvas = await html2canvas.default(element, {
+      backgroundColor: "#020617",
+      scale: 2,
+      useCORS: true,
+    })
+
+    const image = canvas.toDataURL("image/png")
+    const link = document.createElement("a")
+
+    link.href = image
+    link.download = "arc-builder-passport.png"
+    link.click()
+  }
 
   return (
     <section className="mt-8 rounded-3xl border border-fuchsia-500/20 bg-gradient-to-br from-fuchsia-950/30 via-slate-900 to-cyan-950/20 p-7 shadow-2xl shadow-fuchsia-950/20">
@@ -64,7 +91,10 @@ function BuilderPassport({
       </div>
 
       <div className="mt-8 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[2rem] border border-white/10 bg-slate-950 p-6">
+        <div
+          ref={passportRef}
+          className="rounded-[2rem] border border-white/10 bg-slate-950 p-6"
+        >
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-cyan-300">
@@ -139,7 +169,7 @@ function BuilderPassport({
               <button
                 type="button"
                 className="rounded-xl bg-fuchsia-600 px-4 py-3 font-bold text-white hover:bg-fuchsia-500"
-                onClick={() => alert("PNG export will be added next.")}
+                onClick={downloadPassportPng}
               >
                 Download Passport PNG
               </button>
@@ -155,7 +185,9 @@ function BuilderPassport({
               <button
                 type="button"
                 className="rounded-xl border border-white/10 px-4 py-3 font-bold text-slate-300 hover:bg-white/10"
-                onClick={() => alert("Passport NFT mint will be added after export tools.")}
+                onClick={() =>
+                  alert("Passport NFT mint will be added after export tools.")
+                }
               >
                 Passport NFT Coming Next
               </button>
