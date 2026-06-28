@@ -9,6 +9,7 @@ import BuilderLevelCard from "./components/BuilderLevelCard"
 import BuilderProfile from "./components/BuilderProfile"
 import AIBuilderCoach from "./components/AIBuilderCoach"
 import WeeklyAnalytics from "./components/WeeklyAnalytics"
+import BuilderPassport from "./components/BuilderPassport"
 import NetworkCard from "./components/NetworkCard"
 import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
@@ -186,6 +187,16 @@ function App() {
           totalXp={onchainTotalXp}
           builderScore={onchainBuilderScore}
           reputation={reputation.score}
+        />
+
+        <BuilderPassport
+          wallet={shortAddress}
+          totalXp={onchainTotalXp}
+          builderScore={onchainBuilderScore}
+          reputation={reputation.score}
+          currentStreak={onchainCurrentStreak}
+          bestStreak={onchainBestStreak}
+          totalCheckIns={onchainTotalCheckIns}
         />
 
         <Dashboard
