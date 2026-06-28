@@ -3,29 +3,13 @@ export type Quest = {
   title: string
   description: string
   xp: number
-  category: "daily"
 }
 
 export const quests: Quest[] = [
   {
-    id: "gm",
-    title: "GM",
-    description: "Start the day with a GM.",
-    xp: 2,
-    category: "daily",
-  },
-  {
-    id: "gn",
-    title: "GN",
-    description: "End the day with a GN.",
-    xp: 2,
-    category: "daily",
-  },
-  {
     id: "daily-check-in",
     title: "Daily Check In",
-    description: "Daily activity check.",
+    description: "Complete your daily onchain check-in on Arc Testnet.",
     xp: 10,
-    category: "daily",
   },
 ]
