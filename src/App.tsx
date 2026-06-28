@@ -7,6 +7,7 @@ import HeroBanner from "./components/HeroBanner"
 import Dashboard from "./components/Dashboard"
 import BuilderLevelCard from "./components/BuilderLevelCard"
 import BuilderProfile from "./components/BuilderProfile"
+import AIBuilderCoach from "./components/AIBuilderCoach"
 import WeeklyAnalytics from "./components/WeeklyAnalytics"
 import NetworkCard from "./components/NetworkCard"
 import TxStatusCard from "./components/TxStatusCard"
@@ -163,6 +164,18 @@ function App() {
           totalCheckIns={onchainTotalCheckIns}
           isConnected={isConnected}
           isRegistered={onchainRegistered}
+          isVerified={isWalletVerified}
+        />
+
+        <AIBuilderCoach
+          totalXp={onchainTotalXp}
+          builderScore={onchainBuilderScore}
+          currentStreak={onchainCurrentStreak}
+          bestStreak={onchainBestStreak}
+          totalCheckIns={onchainTotalCheckIns}
+          reputation={reputation.score}
+          hasCheckedInToday={hasCheckedInTodayOnchain}
+          isConnected={isConnected}
           isVerified={isWalletVerified}
         />
 
