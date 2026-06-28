@@ -1,31 +1,50 @@
-# Node modules
-/node_modules
+# Dependencies
+node_modules
+.pnp
+.pnp.js
 
-# Compilation output
-/dist
+# Production builds
+dist
+build
+.vite
 
-# pnpm deploy output
-/bundle
-
-# Hardhat Build Artifacts
-/artifacts
-
-# Hardhat compilation (v2) support directory
-/cache
-
-# Typechain output
-/types
-
-# Environment files
+# Environment variables
 .env
-.env.*
-!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Hardhat coverage reports
-/coverage
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Gas snapshot files
-/.gas-snapshot
+# OS files
+.DS_Store
+Thumbs.db
 
-# Snapshot cheatcodes output
-/snapshots
+# Editor files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Hardhat
+artifacts
+cache
+ignition/deployments
+typechain-types
+
+# Coverage
+coverage
+coverage.json
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local notes
+notes.md
+scratch.md
