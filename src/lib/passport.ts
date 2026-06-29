@@ -1,3 +1,5 @@
+import type { Achievement } from "./achievements"
+
 export type PassportData = {
   wallet: string
   xp: number
@@ -27,22 +29,21 @@ export function getBuilderBadges(
 ): string[] {
   const badges: string[] = []
 
-  if (totalCheckIns >= 1)
-    badges.push("Genesis Builder")
-
-  if (currentStreak >= 7)
-    badges.push("7 Day Streak")
-
-  if (currentStreak >= 30)
-    badges.push("30 Day Streak")
-
-  if (currentStreak >= 100)
-    badges.push("100 Day Legend")
-
-  if (reputation >= 80)
-    badges.push("Elite Reputation")
+  if (totalCheckIns >= 1) badges.push("Genesis Builder")
+  if (currentStreak >= 7) badges.push("7 Day Streak")
+  if (currentStreak >= 30) badges.push("30 Day Streak")
+  if (currentStreak >= 100) badges.push("100 Day Legend")
+  if (reputation >= 80) badges.push("Elite Reputation")
 
   return badges
+}
+
+export function getUnlockedAchievementBadges(
+  achievements: Achievement[],
+): string[] {
+  return achievements
+    .filter((achievement) => achievement.unlocked)
+    .map((achievement) => achievement.title)
 }
 
 export function createPassport(data: {
@@ -53,7 +54,18 @@ export function createPassport(data: {
   currentStreak: number
   bestStreak: number
   totalCheckIns: number
+  achievements?: Achievement[]
 }): PassportData {
+  const achievementBadges = data.achievements
+    ? getUnlockedAchievementBadges(data.achievements)
+    : []
+
+  const basicBadges = getBuilderBadges(
+    data.currentStreak,
+    data.totalCheckIns,
+    data.reputation,
+  )
+
   return {
     wallet: data.wallet,
     xp: data.xp,
@@ -63,11 +75,10 @@ export function createPassport(data: {
     bestStreak: data.bestStreak,
     totalCheckIns: data.totalCheckIns,
     level: getBuilderLevel(data.builderScore),
-    badges: getBuilderBadges(
-      data.currentStreak,
-      data.totalCheckIns,
-      data.reputation,
-    ),
+    badges:
+      achievementBadges.length > 0
+        ? Array.from(new Set(achievementBadges))
+        : Array.from(new Set(basicBadges)),
     joinedAt: new Date().toISOString(),
   }
 }
@@ -76,34 +87,20 @@ export function passportCompletion(passport: PassportData): number {
   let score = 0
 
   if (passport.wallet) score += 15
-
   if (passport.xp > 0) score += 15
-
   if (passport.builderScore > 0) score += 15
-
   if (passport.reputation > 0) score += 15
-
   if (passport.totalCheckIns > 0) score += 20
-
   if (passport.badges.length > 0) score += 20
 
   return Math.min(score, 100)
 }
 
-export function nextPassportGoal(
-  passport: PassportData,
-): string {
-  if (passport.totalCheckIns === 0)
-    return "Complete your first onchain check-in."
-
-  if (passport.currentStreak < 7)
-    return `Reach a ${7 - passport.currentStreak} day streak.`
-
-  if (passport.reputation < 80)
-    return `Increase reputation to 80.`
-
-  if (passport.builderScore < 300)
-    return `Reach Builder Score 300.`
+export function nextPassportGoal(passport: PassportData): string {
+  if (passport.totalCheckIns === 0) return "Complete your first onchain check-in."
+  if (passport.currentStreak < 7) return `Reach a ${7 - passport.currentStreak} day streak.`
+  if (passport.reputation < 80) return "Increase reputation to 80."
+  if (passport.builderScore < 300) return "Reach Builder Score 300."
 
   return "Passport is progressing well."
 }
