@@ -149,6 +149,10 @@ function App() {
     passportMinted,
   })
 
+  const achievementsUnlocked = achievements.filter(
+    (achievement) => achievement.unlocked,
+  ).length
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-8 py-8">
@@ -255,6 +259,11 @@ function App() {
           currentStreak={onchainCurrentStreak}
           completedCount={completedCount}
           openQuestCount={openQuestCount}
+          reputation={reputation.score}
+          totalCheckIns={onchainTotalCheckIns}
+          passportMinted={passportMinted}
+          achievementsUnlocked={achievementsUnlocked}
+          achievementsTotal={achievements.length}
         />
 
         <BuilderLevelCard builderScore={onchainBuilderScore} />
