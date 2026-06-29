@@ -10,6 +10,7 @@ import BuilderProfile from "./components/BuilderProfile"
 import AIBuilderCoach from "./components/AIBuilderCoach"
 import WeeklyAnalytics from "./components/WeeklyAnalytics"
 import BuilderPassport from "./components/BuilderPassport"
+import SecurityAuditPanel from "./components/SecurityAuditPanel"
 import NetworkCard from "./components/NetworkCard"
 import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
@@ -23,6 +24,7 @@ import { useWallet } from "./hooks/useWallet"
 import { useWalletVerification } from "./hooks/useWalletVerification"
 import { useArcNetwork } from "./hooks/useArcNetwork"
 import { useCheckInContract } from "./hooks/useCheckInContract"
+import { usePassportNft } from "./hooks/usePassportNft"
 import { calculateReputation } from "./lib/reputation"
 
 function App() {
@@ -53,6 +55,8 @@ function App() {
     leaderboardRows,
     historyRecords,
   } = useCheckInContract()
+
+  const { passportMinted } = usePassportNft()
 
   const [txHash, setTxHash] = useState("")
 
@@ -197,6 +201,14 @@ function App() {
           currentStreak={onchainCurrentStreak}
           bestStreak={onchainBestStreak}
           totalCheckIns={onchainTotalCheckIns}
+        />
+
+        <SecurityAuditPanel
+          isConnected={isConnected}
+          isArcNetwork={isArcNetwork}
+          isWalletVerified={isWalletVerified}
+          hasCheckedInToday={hasCheckedInTodayOnchain}
+          passportMinted={passportMinted}
         />
 
         <Dashboard
