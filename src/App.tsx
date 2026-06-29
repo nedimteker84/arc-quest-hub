@@ -210,7 +210,7 @@ function App() {
         />
 
         <BuilderPassport
-          wallet={shortAddress}
+          wallet={address ?? shortAddress}
           totalXp={onchainTotalXp}
           builderScore={onchainBuilderScore}
           reputation={reputation.score}
