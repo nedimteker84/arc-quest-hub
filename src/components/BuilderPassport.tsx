@@ -89,6 +89,7 @@ function BuilderPassport({
   const completion = passportCompletion(passport)
   const nextGoal = nextPassportGoal(passport)
   const passportUrl = `https://arc-quest-hub.vercel.app/?builder=${passport.wallet}`
+  const explorerUrl = `https://testnet.arcscan.app/address/${PASSPORT_NFT_ADDRESS}`
   const canMintPassport = totalCheckIns > 0 && builderScore > 0 && reputation > 0
 
   useEffect(() => {
@@ -294,6 +295,10 @@ function BuilderPassport({
     window.open(`https://x.com/intent/tweet?text=${text}`, "_blank")
   }
 
+  function openExplorer() {
+    window.open(explorerUrl, "_blank")
+  }
+
   return (
     <section className="mt-8 rounded-3xl border border-fuchsia-500/20 bg-gradient-to-br from-fuchsia-950/30 via-slate-900 to-cyan-950/20 p-7 shadow-2xl shadow-fuchsia-950/20">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -455,6 +460,14 @@ function BuilderPassport({
                 onClick={copyPassportLink}
               >
                 Copy Passport Link
+              </button>
+
+              <button
+                type="button"
+                className="rounded-xl border border-cyan-400/40 px-4 py-3 font-bold text-cyan-300 hover:bg-cyan-500/10"
+                onClick={openExplorer}
+              >
+                Open NFT Contract
               </button>
 
               <button
