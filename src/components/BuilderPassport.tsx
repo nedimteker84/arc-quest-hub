@@ -1,5 +1,6 @@
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import jsPDF from "jspdf"
+import * as QRCode from "qrcode"
 import {
   createPassport,
   nextPassportGoal,
@@ -26,6 +27,7 @@ function BuilderPassport({
   totalCheckIns,
 }: BuilderPassportProps) {
   const passportRef = useRef<HTMLDivElement>(null)
+  const [qrDataUrl, setQrDataUrl] = useState("")
 
   const passport = createPassport({
     wallet,
@@ -39,6 +41,29 @@ function BuilderPassport({
 
   const completion = passportCompletion(passport)
   const nextGoal = nextPassportGoal(passport)
+  const passportUrl = `https://arc-quest-hub.vercel.app/?builder=${passport.wallet}`
+
+  useEffect(() => {
+    async function createQrCode() {
+      try {
+        const qr = await QRCode.toDataURL(passportUrl, {
+          margin: 1,
+          width: 220,
+          color: {
+            dark: "#ffffff",
+            light: "#020617",
+          },
+        })
+
+        setQrDataUrl(qr)
+      } catch (error) {
+        console.error("Failed to generate passport QR:", error)
+        setQrDataUrl("")
+      }
+    }
+
+    createQrCode()
+  }, [passportUrl])
 
   async function getPassportCanvas() {
     const element = passportRef.current
@@ -84,9 +109,18 @@ function BuilderPassport({
     pdf.save("arc-builder-passport.pdf")
   }
 
+  async function copyPassportLink() {
+    try {
+      await navigator.clipboard.writeText(passportUrl)
+      alert("Passport link copied.")
+    } catch {
+      alert(passportUrl)
+    }
+  }
+
   function sharePassportOnX() {
     const text = encodeURIComponent(
-      `I just generated my Arc Builder Passport.\n\nXP: ${passport.xp}\nBuilder Score: ${passport.builderScore}\nReputation: ${passport.reputation}/100\nLevel: ${passport.level}\n\nBuilt with Arc Quest Hub.`,
+      `I just generated my Arc Builder Passport.\n\nXP: ${passport.xp}\nBuilder Score: ${passport.builderScore}\nReputation: ${passport.reputation}/100\nLevel: ${passport.level}\n\n${passportUrl}`,
     )
 
     window.open(`https://x.com/intent/tweet?text=${text}`, "_blank")
@@ -130,7 +164,7 @@ function BuilderPassport({
                 Passport Holder
               </p>
 
-              <p className="mt-2 text-2xl font-black text-white">
+              <p className="mt-2 break-all text-2xl font-black text-white">
                 {passport.wallet || "Not connected"}
               </p>
             </div>
@@ -158,17 +192,29 @@ function BuilderPassport({
             <PassportMetric title="Best Streak" value={passport.bestStreak} />
           </div>
 
-          <div className="mt-6">
-            <div className="h-4 overflow-hidden rounded-full bg-slate-800">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-fuchsia-400 via-cyan-400 to-emerald-400"
-                style={{ width: `${completion}%` }}
-              />
+          <div className="mt-6 grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
+            <div>
+              <div className="h-4 overflow-hidden rounded-full bg-slate-800">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-fuchsia-400 via-cyan-400 to-emerald-400"
+                  style={{ width: `${completion}%` }}
+                />
+              </div>
+
+              <p className="mt-3 text-sm font-semibold text-fuchsia-300">
+                Next goal: {nextGoal}
+              </p>
             </div>
 
-            <p className="mt-3 text-sm font-semibold text-fuchsia-300">
-              Next goal: {nextGoal}
-            </p>
+            {qrDataUrl && (
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+                <img
+                  src={qrDataUrl}
+                  alt="Arc Builder Passport QR"
+                  className="h-28 w-28 rounded-xl"
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -226,8 +272,16 @@ function BuilderPassport({
               <button
                 type="button"
                 className="rounded-xl border border-white/10 px-4 py-3 font-bold text-slate-300 hover:bg-white/10"
+                onClick={copyPassportLink}
+              >
+                Copy Passport Link
+              </button>
+
+              <button
+                type="button"
+                className="rounded-xl border border-white/10 px-4 py-3 font-bold text-slate-300 hover:bg-white/10"
                 onClick={() =>
-                  alert("Passport NFT mint will be added after export tools.")
+                  alert("Passport NFT mint will be added after QR and export.")
                 }
               >
                 Passport NFT Coming Next
