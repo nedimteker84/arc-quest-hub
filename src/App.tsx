@@ -11,6 +11,7 @@ import AIBuilderCoach from "./components/AIBuilderCoach"
 import WeeklyAnalytics from "./components/WeeklyAnalytics"
 import BuilderPassport from "./components/BuilderPassport"
 import SecurityAuditPanel from "./components/SecurityAuditPanel"
+import PublicBuilderProfile from "./components/PublicBuilderProfile"
 import NetworkCard from "./components/NetworkCard"
 import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
@@ -25,6 +26,7 @@ import { useWalletVerification } from "./hooks/useWalletVerification"
 import { useArcNetwork } from "./hooks/useArcNetwork"
 import { useCheckInContract } from "./hooks/useCheckInContract"
 import { usePassportNft } from "./hooks/usePassportNft"
+import { usePublicBuilderProfile } from "./hooks/usePublicBuilderProfile"
 import { calculateReputation } from "./lib/reputation"
 
 function App() {
@@ -61,6 +63,11 @@ function App() {
     passportTokenId,
     passportTokenUri,
   } = usePassportNft()
+
+  const {
+    profile: publicProfile,
+    loading: publicProfileLoading,
+  } = usePublicBuilderProfile()
 
   const [txHash, setTxHash] = useState("")
 
@@ -151,6 +158,11 @@ function App() {
         />
 
         <HeroBanner />
+
+        <PublicBuilderProfile
+          profile={publicProfile}
+          loading={publicProfileLoading}
+        />
 
         <QuestSection
           title="Daily Quest"
