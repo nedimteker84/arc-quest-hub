@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/passport-metadata.ts": {
+      "runtime": "@vercel/node@5.3.4"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/passport-metadata",
+      "destination": "/api/passport-metadata"
+    }
+  ]
+}
