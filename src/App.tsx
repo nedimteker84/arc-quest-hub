@@ -56,7 +56,11 @@ function App() {
     historyRecords,
   } = useCheckInContract()
 
-  const { passportMinted } = usePassportNft()
+  const {
+    passportMinted,
+    passportTokenId,
+    passportTokenUri,
+  } = usePassportNft()
 
   const [txHash, setTxHash] = useState("")
 
@@ -209,6 +213,8 @@ function App() {
           isWalletVerified={isWalletVerified}
           hasCheckedInToday={hasCheckedInTodayOnchain}
           passportMinted={passportMinted}
+          passportTokenId={passportTokenId}
+          passportTokenUri={passportTokenUri}
         />
 
         <Dashboard

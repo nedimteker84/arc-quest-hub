@@ -4,6 +4,8 @@ type SecurityAuditPanelProps = {
   isWalletVerified: boolean
   hasCheckedInToday: boolean
   passportMinted: boolean
+  passportTokenId: number
+  passportTokenUri: string
 }
 
 function SecurityAuditPanel({
@@ -12,7 +14,18 @@ function SecurityAuditPanel({
   isWalletVerified,
   hasCheckedInToday,
   passportMinted,
+  passportTokenId,
+  passportTokenUri,
 }: SecurityAuditPanelProps) {
+  const explorerUrl =
+    passportTokenId > 0
+      ? `https://testnet.arcscan.app/token/0xD7c13571F3DC037B23F484005D407F59D7Ae49Be/instance/${passportTokenId}`
+      : "https://testnet.arcscan.app/address/0xD7c13571F3DC037B23F484005D407F59D7Ae49Be"
+
+  const gatewayUrl = passportTokenUri.startsWith("ipfs://")
+    ? passportTokenUri.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/")
+    : passportTokenUri
+
   const checks = [
     {
       title: "Wallet connection",
@@ -37,7 +50,7 @@ function SecurityAuditPanel({
     {
       title: "Passport NFT status",
       description: passportMinted
-        ? "This wallet already minted its Passport NFT."
+        ? `Passport NFT detected. Token ID ${passportTokenId}.`
         : "This wallet has not minted a Passport NFT yet.",
       passed: passportMinted,
     },
@@ -84,9 +97,7 @@ function SecurityAuditPanel({
             }
           >
             <div className="flex items-start gap-3">
-              <span className="text-xl">
-                {check.passed ? "✅" : "⚠️"}
-              </span>
+              <span className="text-xl">{check.passed ? "✅" : "⚠️"}</span>
 
               <div>
                 <p
@@ -108,6 +119,41 @@ function SecurityAuditPanel({
         ))}
       </div>
 
+      {passportMinted && (
+        <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
+          <p className="text-sm font-black text-cyan-300">
+            Passport NFT Details
+          </p>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            <InfoBox title="Token ID" value={passportTokenId} />
+
+            <InfoBox
+              title="Metadata"
+              value={passportTokenUri ? "IPFS metadata linked" : "Loading"}
+            />
+
+            <button
+              type="button"
+              className="rounded-xl border border-cyan-400/30 px-4 py-3 text-sm font-bold text-cyan-300 hover:bg-cyan-400/10"
+              onClick={() => window.open(explorerUrl, "_blank")}
+            >
+              Open NFT Explorer
+            </button>
+          </div>
+
+          {gatewayUrl && (
+            <button
+              type="button"
+              className="mt-4 rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-slate-300 hover:bg-white/10"
+              onClick={() => window.open(gatewayUrl, "_blank")}
+            >
+              Open IPFS Metadata
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <SecurityNote
           title="No private keys"
@@ -125,6 +171,22 @@ function SecurityAuditPanel({
         />
       </div>
     </section>
+  )
+}
+
+function InfoBox({
+  title,
+  value,
+}: {
+  title: string
+  value: number | string
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-slate-950 p-4">
+      <p className="text-xs uppercase tracking-wide text-slate-500">{title}</p>
+
+      <p className="mt-2 break-all text-sm font-black text-white">{value}</p>
+    </div>
   )
 }
 
