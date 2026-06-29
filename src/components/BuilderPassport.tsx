@@ -83,6 +83,7 @@ function BuilderPassport({
   const completion = passportCompletion(passport)
   const nextGoal = nextPassportGoal(passport)
   const passportUrl = `https://arc-quest-hub.vercel.app/?builder=${passport.wallet}`
+  const canMintPassport = totalCheckIns > 0 && builderScore > 0 && reputation > 0
 
   useEffect(() => {
     async function createQrCode() {
@@ -193,6 +194,11 @@ function BuilderPassport({
   async function mintPassportNft() {
     if (!address) {
       alert("Connect wallet first.")
+      return
+    }
+
+    if (!canMintPassport) {
+      alert("Complete at least one onchain check-in before minting Passport NFT.")
       return
     }
 
@@ -388,6 +394,12 @@ function BuilderPassport({
             </div>
           )}
 
+          {!canMintPassport && (
+            <div className="mt-6 rounded-xl border border-yellow-400/20 bg-yellow-400/10 p-4 text-sm font-semibold text-yellow-300">
+              Passport NFT unlocks after your first verified onchain check-in.
+            </div>
+          )}
+
           <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-5">
             <p className="text-sm font-bold text-white">Passport Actions</p>
 
@@ -432,7 +444,7 @@ function BuilderPassport({
 
               <button
                 type="button"
-                disabled={minted || minting}
+                disabled={minted || minting || !canMintPassport}
                 className="rounded-xl border border-fuchsia-400/40 px-4 py-3 font-bold text-fuchsia-300 hover:bg-fuchsia-500/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:text-slate-500"
                 onClick={mintPassportNft}
               >
