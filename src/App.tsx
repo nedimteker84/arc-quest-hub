@@ -4,16 +4,10 @@ import { quests } from "./data/quests"
 
 import Header from "./components/Header"
 import HeroBanner from "./components/HeroBanner"
-import Dashboard from "./components/Dashboard"
-import BuilderLevelCard from "./components/BuilderLevelCard"
 import BuilderProfile from "./components/BuilderProfile"
-import AIBuilderCoach from "./components/AIBuilderCoach"
-import WeeklyAnalytics from "./components/WeeklyAnalytics"
-import BuilderPassport from "./components/BuilderPassport"
+import BuilderProgressSection from "./components/BuilderProgressSection"
 import SecurityAuditPanel from "./components/SecurityAuditPanel"
 import PublicBuilderProfile from "./components/PublicBuilderProfile"
-import AchievementPanel from "./components/AchievementPanel"
-import QuestEnginePanel from "./components/QuestEnginePanel"
 import NetworkCard from "./components/NetworkCard"
 import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
@@ -149,10 +143,6 @@ function App() {
     passportMinted,
   })
 
-  const achievementsUnlocked = achievements.filter(
-    (achievement) => achievement.unlocked,
-  ).length
-
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-8 py-8">
@@ -202,7 +192,8 @@ function App() {
           isVerified={isWalletVerified}
         />
 
-        <AIBuilderCoach
+        <BuilderProgressSection
+          wallet={address ?? shortAddress}
           totalXp={onchainTotalXp}
           builderScore={onchainBuilderScore}
           currentStreak={onchainCurrentStreak}
@@ -212,35 +203,10 @@ function App() {
           hasCheckedInToday={hasCheckedInTodayOnchain}
           isConnected={isConnected}
           isVerified={isWalletVerified}
-        />
-
-        <WeeklyAnalytics
-          currentStreak={onchainCurrentStreak}
-          bestStreak={onchainBestStreak}
-          totalCheckIns={onchainTotalCheckIns}
-          totalXp={onchainTotalXp}
-          builderScore={onchainBuilderScore}
-          reputation={reputation.score}
-        />
-
-        <BuilderPassport
-          wallet={address ?? shortAddress}
-          totalXp={onchainTotalXp}
-          builderScore={onchainBuilderScore}
-          reputation={reputation.score}
-          currentStreak={onchainCurrentStreak}
-          bestStreak={onchainBestStreak}
-          totalCheckIns={onchainTotalCheckIns}
-        />
-
-        <AchievementPanel achievements={achievements} />
-
-        <QuestEnginePanel
-          isWalletVerified={isWalletVerified}
-          hasCheckedInToday={hasCheckedInTodayOnchain}
           passportMinted={passportMinted}
-          currentStreak={onchainCurrentStreak}
-          reputation={reputation.score}
+          completedCount={completedCount}
+          openQuestCount={openQuestCount}
+          achievements={achievements}
         />
 
         <SecurityAuditPanel
@@ -252,21 +218,6 @@ function App() {
           passportTokenId={passportTokenId}
           passportTokenUri={passportTokenUri}
         />
-
-        <Dashboard
-          xp={onchainTotalXp}
-          builderScore={onchainBuilderScore}
-          currentStreak={onchainCurrentStreak}
-          completedCount={completedCount}
-          openQuestCount={openQuestCount}
-          reputation={reputation.score}
-          totalCheckIns={onchainTotalCheckIns}
-          passportMinted={passportMinted}
-          achievementsUnlocked={achievementsUnlocked}
-          achievementsTotal={achievements.length}
-        />
-
-        <BuilderLevelCard builderScore={onchainBuilderScore} />
 
         <BadgePanel
           streak={onchainCurrentStreak}
