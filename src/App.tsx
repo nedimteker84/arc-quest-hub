@@ -13,6 +13,7 @@ import BuilderPassport from "./components/BuilderPassport"
 import SecurityAuditPanel from "./components/SecurityAuditPanel"
 import PublicBuilderProfile from "./components/PublicBuilderProfile"
 import AchievementPanel from "./components/AchievementPanel"
+import QuestEnginePanel from "./components/QuestEnginePanel"
 import NetworkCard from "./components/NetworkCard"
 import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
@@ -229,6 +230,14 @@ function App() {
         />
 
         <AchievementPanel achievements={achievements} />
+
+        <QuestEnginePanel
+          isWalletVerified={isWalletVerified}
+          hasCheckedInToday={hasCheckedInTodayOnchain}
+          passportMinted={passportMinted}
+          currentStreak={onchainCurrentStreak}
+          reputation={reputation.score}
+        />
 
         <SecurityAuditPanel
           isConnected={isConnected}
