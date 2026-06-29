@@ -35,8 +35,10 @@ function SecurityAuditPanel({
       passed: hasCheckedInToday,
     },
     {
-      title: "One-passport mint rule",
-      description: "The NFT contract prevents the same wallet from minting twice.",
+      title: "Passport NFT status",
+      description: passportMinted
+        ? "This wallet already minted its Passport NFT."
+        : "This wallet has not minted a Passport NFT yet.",
       passed: passportMinted,
     },
   ]
@@ -58,7 +60,7 @@ function SecurityAuditPanel({
 
           <p className="mt-3 max-w-3xl text-slate-400">
             A live checklist for wallet safety, network validation, onchain
-            eligibility and duplicate-mint protection.
+            eligibility, IPFS metadata flow and duplicate-mint protection.
           </p>
         </div>
 
@@ -106,18 +108,39 @@ function SecurityAuditPanel({
         ))}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-white/10 bg-slate-950 p-5">
-        <p className="text-sm font-bold text-white">
-          Wallet Safety Notes
-        </p>
+      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <SecurityNote
+          title="No private keys"
+          text="The app never asks for private keys, seed phrases, wallet secrets or recovery phrases."
+        />
 
-        <p className="mt-2 text-sm leading-6 text-slate-400">
-          Arc Quest Hub never asks for private keys, seed phrases or wallet
-          secrets. All sensitive metadata upload credentials stay server-side.
-          Users only sign explicit wallet actions.
-        </p>
+        <SecurityNote
+          title="Server-side IPFS"
+          text="Pinata credentials stay on the server through Vercel Environment Variables."
+        />
+
+        <SecurityNote
+          title="Explicit signatures"
+          text="Users only approve visible wallet actions such as check-in and Passport NFT mint."
+        />
       </div>
     </section>
+  )
+}
+
+function SecurityNote({
+  title,
+  text,
+}: {
+  title: string
+  text: string
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-slate-950 p-5">
+      <p className="text-sm font-black text-white">{title}</p>
+
+      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+    </div>
   )
 }
 
