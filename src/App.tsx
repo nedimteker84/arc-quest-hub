@@ -12,6 +12,7 @@ import WeeklyAnalytics from "./components/WeeklyAnalytics"
 import BuilderPassport from "./components/BuilderPassport"
 import SecurityAuditPanel from "./components/SecurityAuditPanel"
 import PublicBuilderProfile from "./components/PublicBuilderProfile"
+import AchievementPanel from "./components/AchievementPanel"
 import NetworkCard from "./components/NetworkCard"
 import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
@@ -28,6 +29,7 @@ import { useCheckInContract } from "./hooks/useCheckInContract"
 import { usePassportNft } from "./hooks/usePassportNft"
 import { usePublicBuilderProfile } from "./hooks/usePublicBuilderProfile"
 import { calculateReputation } from "./lib/reputation"
+import { getAchievements } from "./lib/achievements"
 
 function App() {
   const {
@@ -58,11 +60,7 @@ function App() {
     historyRecords,
   } = useCheckInContract()
 
-  const {
-    passportMinted,
-    passportTokenId,
-    passportTokenUri,
-  } = usePassportNft()
+  const { passportMinted, passportTokenId, passportTokenUri } = usePassportNft()
 
   const {
     profile: publicProfile,
@@ -137,6 +135,17 @@ function App() {
     bestStreak: onchainBestStreak,
     totalCheckIns: onchainTotalCheckIns,
     verified: isWalletVerified,
+  })
+
+  const achievements = getAchievements({
+    totalXp: onchainTotalXp,
+    builderScore: onchainBuilderScore,
+    reputation: reputation.score,
+    currentStreak: onchainCurrentStreak,
+    bestStreak: onchainBestStreak,
+    totalCheckIns: onchainTotalCheckIns,
+    isVerified: isWalletVerified,
+    passportMinted,
   })
 
   return (
@@ -218,6 +227,8 @@ function App() {
           bestStreak={onchainBestStreak}
           totalCheckIns={onchainTotalCheckIns}
         />
+
+        <AchievementPanel achievements={achievements} />
 
         <SecurityAuditPanel
           isConnected={isConnected}
