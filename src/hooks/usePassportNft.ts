@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useAccount } from "wagmi"
 import { createPublicClient, http } from "viem"
 import { arcTestnet } from "../lib/chains"
@@ -21,6 +21,13 @@ export const PASSPORT_NFT_ABI = [
     inputs: [{ name: "builder", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "tokenURI",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "string" }],
+  },
 ] as const
 
 const publicClient = createPublicClient({
@@ -33,56 +40,74 @@ export function usePassportNft() {
 
   const [passportMinted, setPassportMinted] = useState(false)
   const [passportTokenId, setPassportTokenId] = useState(0)
+  const [passportTokenUri, setPassportTokenUri] = useState("")
   const [passportLoading, setPassportLoading] = useState(false)
 
-  useEffect(() => {
-    async function loadPassportNft() {
-      if (!address) {
-        setPassportMinted(false)
+  const refreshPassportNft = useCallback(async () => {
+    if (!address) {
+      setPassportMinted(false)
+      setPassportTokenId(0)
+      setPassportTokenUri("")
+      setPassportLoading(false)
+      return
+    }
+
+    setPassportLoading(true)
+
+    try {
+      const hasMinted = await publicClient.readContract({
+        address: PASSPORT_NFT_ADDRESS,
+        abi: PASSPORT_NFT_ABI,
+        functionName: "hasMinted",
+        args: [address],
+      })
+
+      setPassportMinted(hasMinted)
+
+      if (!hasMinted) {
         setPassportTokenId(0)
-        setPassportLoading(false)
+        setPassportTokenUri("")
         return
       }
 
-      setPassportLoading(true)
+      const tokenId = await publicClient.readContract({
+        address: PASSPORT_NFT_ADDRESS,
+        abi: PASSPORT_NFT_ABI,
+        functionName: "tokenIdOf",
+        args: [address],
+      })
 
-      try {
-        const hasMinted = await publicClient.readContract({
-          address: PASSPORT_NFT_ADDRESS,
-          abi: PASSPORT_NFT_ABI,
-          functionName: "hasMinted",
-          args: [address],
-        })
+      const numericTokenId = Number(tokenId)
 
-        setPassportMinted(hasMinted)
+      setPassportTokenId(numericTokenId)
 
-        if (hasMinted) {
-          const tokenId = await publicClient.readContract({
-            address: PASSPORT_NFT_ADDRESS,
-            abi: PASSPORT_NFT_ABI,
-            functionName: "tokenIdOf",
-            args: [address],
-          })
+      const tokenUri = await publicClient.readContract({
+        address: PASSPORT_NFT_ADDRESS,
+        abi: PASSPORT_NFT_ABI,
+        functionName: "tokenURI",
+        args: [BigInt(numericTokenId)],
+      })
 
-          setPassportTokenId(Number(tokenId))
-        } else {
-          setPassportTokenId(0)
-        }
-      } catch (error) {
-        console.error("Failed to load Passport NFT:", error)
-        setPassportMinted(false)
-        setPassportTokenId(0)
-      } finally {
-        setPassportLoading(false)
-      }
+      setPassportTokenUri(tokenUri)
+    } catch (error) {
+      console.error("Failed to load Passport NFT:", error)
+      setPassportMinted(false)
+      setPassportTokenId(0)
+      setPassportTokenUri("")
+    } finally {
+      setPassportLoading(false)
     }
-
-    loadPassportNft()
   }, [address])
+
+  useEffect(() => {
+    refreshPassportNft()
+  }, [refreshPassportNft])
 
   return {
     passportMinted,
     passportTokenId,
+    passportTokenUri,
     passportLoading,
+    refreshPassportNft,
   }
 }
