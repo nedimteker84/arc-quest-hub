@@ -4,6 +4,7 @@ import ActivityTimeline from "./ActivityTimeline"
 import Leaderboard from "./Leaderboard"
 import NetworkCard from "./NetworkCard"
 import TransactionStatus from "./TransactionStatus"
+import DemoFlowPanel from "./DemoFlowPanel"
 import ProjectOwnership from "./ProjectOwnership"
 import type {
   CheckInHistoryRecord,
@@ -57,6 +58,14 @@ function BuilderStatusSection({
         passportMinted={passportMinted}
         passportTokenId={passportTokenId}
         passportTokenUri={passportTokenUri}
+      />
+
+      <DemoFlowPanel
+        isConnected={isConnected}
+        isWalletVerified={isWalletVerified}
+        hasCheckedInToday={hasCheckedInToday}
+        passportMinted={passportMinted}
+        txHash={txHash}
       />
 
       <BadgePanel
