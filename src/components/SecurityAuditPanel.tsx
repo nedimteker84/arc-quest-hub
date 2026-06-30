@@ -1,3 +1,10 @@
+import {
+  CONTRACTS,
+  getExplorerAddressUrl,
+  getExplorerTokenUrl,
+  getIpfsGatewayUrl,
+} from "../lib/config"
+
 type SecurityAuditPanelProps = {
   isConnected: boolean
   isArcNetwork: boolean
@@ -19,12 +26,10 @@ function SecurityAuditPanel({
 }: SecurityAuditPanelProps) {
   const explorerUrl =
     passportTokenId > 0
-      ? `https://testnet.arcscan.app/token/0xD7c13571F3DC037B23F484005D407F59D7Ae49Be/instance/${passportTokenId}`
-      : "https://testnet.arcscan.app/address/0xD7c13571F3DC037B23F484005D407F59D7Ae49Be"
+      ? getExplorerTokenUrl(passportTokenId)
+      : getExplorerAddressUrl(CONTRACTS.builderPassportNft)
 
-  const gatewayUrl = passportTokenUri.startsWith("ipfs://")
-    ? passportTokenUri.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/")
-    : passportTokenUri
+  const gatewayUrl = getIpfsGatewayUrl(passportTokenUri)
 
   const checks = [
     {
