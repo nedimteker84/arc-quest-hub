@@ -5,6 +5,7 @@ import Leaderboard from "./Leaderboard"
 import NetworkCard from "./NetworkCard"
 import TransactionStatus from "./TransactionStatus"
 import DemoFlowPanel from "./DemoFlowPanel"
+import LaunchChecklistPanel from "./LaunchChecklistPanel"
 import ProjectOwnership from "./ProjectOwnership"
 import type {
   CheckInHistoryRecord,
@@ -62,6 +63,15 @@ function BuilderStatusSection({
 
       <DemoFlowPanel
         isConnected={isConnected}
+        isWalletVerified={isWalletVerified}
+        hasCheckedInToday={hasCheckedInToday}
+        passportMinted={passportMinted}
+        txHash={txHash}
+      />
+
+      <LaunchChecklistPanel
+        isConnected={isConnected}
+        isArcNetwork={isArcNetwork}
         isWalletVerified={isWalletVerified}
         hasCheckedInToday={hasCheckedInToday}
         passportMinted={passportMinted}
