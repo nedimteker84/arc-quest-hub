@@ -22,6 +22,10 @@ export function getExplorerAddressUrl(address: string) {
   return `${ARC_TESTNET.explorerUrl}/address/${address}`
 }
 
+export function getExplorerTransactionUrl(txHash: string) {
+  return `${ARC_TESTNET.explorerUrl}/tx/${txHash}`
+}
+
 export function getExplorerTokenUrl(tokenId: number) {
   return `${ARC_TESTNET.explorerUrl}/token/${CONTRACTS.builderPassportNft}/instance/${tokenId}`
 }
