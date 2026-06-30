@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { createPublicClient, http, isAddress } from "viem"
 import { arcTestnet } from "../lib/chains"
+import { ARC_TESTNET, CONTRACTS } from "../lib/config"
 
-const ARC_QUEST_HUB_ADDRESS =
-  "0x9c4A47D7Ea291905393Fef8878E2322138968bDE" as const
+const ARC_QUEST_HUB_ADDRESS = CONTRACTS.arcQuestHub
 
 const ABI = [
   {
@@ -26,7 +26,7 @@ const ABI = [
 
 const publicClient = createPublicClient({
   chain: arcTestnet,
-  transport: http("https://rpc.testnet.arc.network"),
+  transport: http(ARC_TESTNET.rpcUrl),
 })
 
 export type PublicBuilderProfile = {
