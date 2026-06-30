@@ -3,7 +3,7 @@ import BadgePanel from "./BadgePanel"
 import ActivityTimeline from "./ActivityTimeline"
 import Leaderboard from "./Leaderboard"
 import NetworkCard from "./NetworkCard"
-import TxStatusCard from "./TxStatusCard"
+import TransactionStatus from "./TransactionStatus"
 import ProjectOwnership from "./ProjectOwnership"
 import type {
   CheckInHistoryRecord,
@@ -75,7 +75,7 @@ function BuilderStatusSection({
         balanceSymbol={balanceSymbol}
       />
 
-      <TxStatusCard txHash={txHash} />
+      <TransactionStatus txHash={txHash} />
 
       <ProjectOwnership />
     </>
