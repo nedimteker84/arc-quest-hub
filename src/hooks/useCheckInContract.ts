@@ -2,11 +2,10 @@ import { useCallback, useEffect, useState } from "react"
 import { createPublicClient, http } from "viem"
 import { useAccount, useWriteContract } from "wagmi"
 import { arcTestnet } from "../lib/chains"
+import { ARC_TESTNET, CONTRACTS } from "../lib/config"
 
-const CONTRACT_ADDRESS =
-  "0x9c4A47D7Ea291905393Fef8878E2322138968bDE" as const
-
-const ARC_CHAIN_HEX = "0x4cef52"
+const CONTRACT_ADDRESS = CONTRACTS.arcQuestHub
+const ARC_CHAIN_HEX = `0x${ARC_TESTNET.id.toString(16)}`
 
 type WalletProvider = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
@@ -116,7 +115,7 @@ const ARC_QUEST_HUB_ABI = [
 
 const publicClient = createPublicClient({
   chain: arcTestnet,
-  transport: http("https://rpc.testnet.arc.network"),
+  transport: http(ARC_TESTNET.rpcUrl),
 })
 
 function getProvider() {
@@ -167,14 +166,14 @@ async function forceSwitchToArcTestnet() {
       params: [
         {
           chainId: ARC_CHAIN_HEX,
-          chainName: "Arc Testnet",
+          chainName: ARC_TESTNET.name,
           nativeCurrency: {
             name: "USDC",
             symbol: "USDC",
             decimals: 18,
           },
-          rpcUrls: ["https://rpc.testnet.arc.network"],
-          blockExplorerUrls: ["https://testnet.arcscan.app"],
+          rpcUrls: [ARC_TESTNET.rpcUrl],
+          blockExplorerUrls: [ARC_TESTNET.explorerUrl],
         },
       ],
     })
@@ -362,7 +361,7 @@ export function useCheckInContract() {
         abi: ARC_QUEST_HUB_ABI,
         functionName: "checkIn",
         account: address,
-        chainId: arcTestnet.id,
+        chainId: ARC_TESTNET.id,
       })
 
       await publicClient.waitForTransactionReceipt({ hash })
