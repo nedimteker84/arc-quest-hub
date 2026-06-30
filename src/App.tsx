@@ -6,15 +6,9 @@ import Header from "./components/Header"
 import HeroBanner from "./components/HeroBanner"
 import BuilderProfile from "./components/BuilderProfile"
 import BuilderProgressSection from "./components/BuilderProgressSection"
-import SecurityAuditPanel from "./components/SecurityAuditPanel"
+import BuilderStatusSection from "./components/BuilderStatusSection"
 import PublicBuilderProfile from "./components/PublicBuilderProfile"
-import NetworkCard from "./components/NetworkCard"
-import TxStatusCard from "./components/TxStatusCard"
 import QuestSection from "./components/QuestSection"
-import Leaderboard from "./components/Leaderboard"
-import BadgePanel from "./components/BadgePanel"
-import ActivityTimeline from "./components/ActivityTimeline"
-import ProjectOwnership from "./components/ProjectOwnership"
 import Footer from "./components/Footer"
 
 import { useWallet } from "./hooks/useWallet"
@@ -209,7 +203,7 @@ function App() {
           achievements={achievements}
         />
 
-        <SecurityAuditPanel
+        <BuilderStatusSection
           isConnected={isConnected}
           isArcNetwork={isArcNetwork}
           isWalletVerified={isWalletVerified}
@@ -217,27 +211,16 @@ function App() {
           passportMinted={passportMinted}
           passportTokenId={passportTokenId}
           passportTokenUri={passportTokenUri}
-        />
-
-        <BadgePanel
-          streak={onchainCurrentStreak}
-          onchainCheckIns={onchainTotalCheckIns}
-        />
-
-        <ActivityTimeline records={historyRecords} />
-
-        <Leaderboard rows={leaderboardRows} />
-
-        <NetworkCard
-          chainId={chainId}
+          currentStreak={onchainCurrentStreak}
+          totalCheckIns={onchainTotalCheckIns}
+          leaderboardRows={leaderboardRows}
+          historyRecords={historyRecords}
+          chainId={chainId ?? 0}
           latestBlock={latestBlock}
           walletBalance={walletBalance}
           balanceSymbol={balanceSymbol}
+          txHash={txHash}
         />
-
-        <TxStatusCard txHash={txHash} />
-
-        <ProjectOwnership />
 
         <Footer />
       </section>
