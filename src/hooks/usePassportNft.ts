@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react"
 import { useAccount } from "wagmi"
 import { createPublicClient, http } from "viem"
 import { arcTestnet } from "../lib/chains"
+import { ARC_TESTNET, CONTRACTS } from "../lib/config"
 
-export const PASSPORT_NFT_ADDRESS =
-  "0xD7c13571F3DC037B23F484005D407F59D7Ae49Be" as const
+export const PASSPORT_NFT_ADDRESS = CONTRACTS.builderPassportNft
 
 export const PASSPORT_NFT_ABI = [
   {
@@ -32,7 +32,7 @@ export const PASSPORT_NFT_ABI = [
 
 const publicClient = createPublicClient({
   chain: arcTestnet,
-  transport: http("https://rpc.testnet.arc.network"),
+  transport: http(ARC_TESTNET.rpcUrl),
 })
 
 export function usePassportNft() {
