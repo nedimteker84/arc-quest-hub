@@ -10,6 +10,7 @@ import BuilderStatusSection from "./components/BuilderStatusSection"
 import PublicBuilderProfile from "./components/PublicBuilderProfile"
 import QuestSection from "./components/QuestSection"
 import Footer from "./components/Footer"
+import { ToastProvider } from "./components/ToastProvider"
 
 import { useWallet } from "./hooks/useWallet"
 import { useWalletVerification } from "./hooks/useWalletVerification"
@@ -138,93 +139,95 @@ function App() {
   })
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-8 py-8">
-        <Header
-          shortAddress={shortAddress}
-          chainId={chainId}
-          isConnected={isConnected}
-          isPending={isPending}
-          isArcNetwork={isArcNetwork}
-          isWalletVerified={isWalletVerified}
-          isVerifyingWallet={isVerifyingWallet}
-          onConnect={connectWallet}
-          onDisconnect={disconnectWallet}
-          onSwitchToArc={switchToArc}
-          onVerifyWallet={verifyWallet}
-          onReset={resetProgress}
-        />
+    <ToastProvider>
+      <main className="min-h-screen bg-slate-950 text-white">
+        <section className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-8 py-8">
+          <Header
+            shortAddress={shortAddress}
+            chainId={chainId}
+            isConnected={isConnected}
+            isPending={isPending}
+            isArcNetwork={isArcNetwork}
+            isWalletVerified={isWalletVerified}
+            isVerifyingWallet={isVerifyingWallet}
+            onConnect={connectWallet}
+            onDisconnect={disconnectWallet}
+            onSwitchToArc={switchToArc}
+            onVerifyWallet={verifyWallet}
+            onReset={resetProgress}
+          />
 
-        <HeroBanner />
+          <HeroBanner />
 
-        <PublicBuilderProfile
-          profile={publicProfile}
-          loading={publicProfileLoading}
-        />
+          <PublicBuilderProfile
+            profile={publicProfile}
+            loading={publicProfileLoading}
+          />
 
-        <QuestSection
-          title="Daily Quest"
-          description={
-            isOnchainCheckInLoading
-              ? "Onchain check-in transaction is pending..."
-              : `Complete your verified onchain daily check-in. Onchain check-ins: ${onchainTotalCheckIns}`
-          }
-          quests={quests}
-          completedQuestIds={displayCompletedQuestIds}
-          onComplete={completeQuest}
-        />
+          <QuestSection
+            title="Daily Quest"
+            description={
+              isOnchainCheckInLoading
+                ? "Onchain check-in transaction is pending..."
+                : `Complete your verified onchain daily check-in. Onchain check-ins: ${onchainTotalCheckIns}`
+            }
+            quests={quests}
+            completedQuestIds={displayCompletedQuestIds}
+            onComplete={completeQuest}
+          />
 
-        <BuilderProfile
-          shortAddress={shortAddress}
-          totalXp={onchainTotalXp}
-          builderScore={onchainBuilderScore}
-          currentStreak={onchainCurrentStreak}
-          bestStreak={onchainBestStreak}
-          totalCheckIns={onchainTotalCheckIns}
-          isConnected={isConnected}
-          isRegistered={onchainRegistered}
-          isVerified={isWalletVerified}
-        />
+          <BuilderProfile
+            shortAddress={shortAddress}
+            totalXp={onchainTotalXp}
+            builderScore={onchainBuilderScore}
+            currentStreak={onchainCurrentStreak}
+            bestStreak={onchainBestStreak}
+            totalCheckIns={onchainTotalCheckIns}
+            isConnected={isConnected}
+            isRegistered={onchainRegistered}
+            isVerified={isWalletVerified}
+          />
 
-        <BuilderProgressSection
-          wallet={address ?? shortAddress}
-          totalXp={onchainTotalXp}
-          builderScore={onchainBuilderScore}
-          currentStreak={onchainCurrentStreak}
-          bestStreak={onchainBestStreak}
-          totalCheckIns={onchainTotalCheckIns}
-          reputation={reputation.score}
-          hasCheckedInToday={hasCheckedInTodayOnchain}
-          isConnected={isConnected}
-          isVerified={isWalletVerified}
-          passportMinted={passportMinted}
-          completedCount={completedCount}
-          openQuestCount={openQuestCount}
-          achievements={achievements}
-        />
+          <BuilderProgressSection
+            wallet={address ?? shortAddress}
+            totalXp={onchainTotalXp}
+            builderScore={onchainBuilderScore}
+            currentStreak={onchainCurrentStreak}
+            bestStreak={onchainBestStreak}
+            totalCheckIns={onchainTotalCheckIns}
+            reputation={reputation.score}
+            hasCheckedInToday={hasCheckedInTodayOnchain}
+            isConnected={isConnected}
+            isVerified={isWalletVerified}
+            passportMinted={passportMinted}
+            completedCount={completedCount}
+            openQuestCount={openQuestCount}
+            achievements={achievements}
+          />
 
-        <BuilderStatusSection
-          isConnected={isConnected}
-          isArcNetwork={isArcNetwork}
-          isWalletVerified={isWalletVerified}
-          hasCheckedInToday={hasCheckedInTodayOnchain}
-          passportMinted={passportMinted}
-          passportTokenId={passportTokenId}
-          passportTokenUri={passportTokenUri}
-          currentStreak={onchainCurrentStreak}
-          totalCheckIns={onchainTotalCheckIns}
-          leaderboardRows={leaderboardRows}
-          historyRecords={historyRecords}
-          chainId={chainId ?? 0}
-          latestBlock={latestBlock}
-          walletBalance={walletBalance}
-          balanceSymbol={balanceSymbol}
-          txHash={txHash}
-        />
+          <BuilderStatusSection
+            isConnected={isConnected}
+            isArcNetwork={isArcNetwork}
+            isWalletVerified={isWalletVerified}
+            hasCheckedInToday={hasCheckedInTodayOnchain}
+            passportMinted={passportMinted}
+            passportTokenId={passportTokenId}
+            passportTokenUri={passportTokenUri}
+            currentStreak={onchainCurrentStreak}
+            totalCheckIns={onchainTotalCheckIns}
+            leaderboardRows={leaderboardRows}
+            historyRecords={historyRecords}
+            chainId={chainId ?? 0}
+            latestBlock={latestBlock}
+            walletBalance={walletBalance}
+            balanceSymbol={balanceSymbol}
+            txHash={txHash}
+          />
 
-        <Footer />
-      </section>
-    </main>
+          <Footer />
+        </section>
+      </main>
+    </ToastProvider>
   )
 }
 
