@@ -1,9 +1,9 @@
 import {
   CONTRACTS,
   getExplorerAddressUrl,
-  getExplorerTokenUrl,
-  getIpfsGatewayUrl,
-} from "../lib/config"
+  openMetadata,
+  openToken,
+} from "../lib/explorer"
 
 type SecurityAuditPanelProps = {
   isConnected: boolean
@@ -24,13 +24,6 @@ function SecurityAuditPanel({
   passportTokenId,
   passportTokenUri,
 }: SecurityAuditPanelProps) {
-  const explorerUrl =
-    passportTokenId > 0
-      ? getExplorerTokenUrl(passportTokenId)
-      : getExplorerAddressUrl(CONTRACTS.builderPassportNft)
-
-  const gatewayUrl = getIpfsGatewayUrl(passportTokenUri)
-
   const checks = [
     {
       title: "Wallet connection",
@@ -49,7 +42,8 @@ function SecurityAuditPanel({
     },
     {
       title: "Onchain activity gate",
-      description: "Passport NFT mint unlocks only after verified onchain activity.",
+      description:
+        "Passport NFT mint unlocks only after verified onchain activity.",
       passed: hasCheckedInToday,
     },
     {
@@ -63,6 +57,15 @@ function SecurityAuditPanel({
 
   const passedCount = checks.filter((check) => check.passed).length
   const score = Math.round((passedCount / checks.length) * 100)
+
+  function openNftExplorer() {
+    if (passportTokenId > 0) {
+      openToken(passportTokenId)
+      return
+    }
+
+    window.open(getExplorerAddressUrl(CONTRACTS.builderPassportNft), "_blank")
+  }
 
   return (
     <section className="mt-8 rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/30 via-slate-900 to-cyan-950/20 p-7 shadow-2xl shadow-emerald-950/20">
@@ -141,17 +144,17 @@ function SecurityAuditPanel({
             <button
               type="button"
               className="rounded-xl border border-cyan-400/30 px-4 py-3 text-sm font-bold text-cyan-300 hover:bg-cyan-400/10"
-              onClick={() => window.open(explorerUrl, "_blank")}
+              onClick={openNftExplorer}
             >
               Open NFT Explorer
             </button>
           </div>
 
-          {gatewayUrl && (
+          {passportTokenUri && (
             <button
               type="button"
               className="mt-4 rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-slate-300 hover:bg-white/10"
-              onClick={() => window.open(gatewayUrl, "_blank")}
+              onClick={() => openMetadata(passportTokenUri)}
             >
               Open IPFS Metadata
             </button>
