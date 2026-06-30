@@ -336,10 +336,12 @@ export function useCheckInContract() {
   }, [address])
 
   const refresh = useCallback(async () => {
-    await loadBuilderStats()
-    await loadHistory()
-    await loadLeaderboard()
-  }, [loadBuilderStats, loadHistory, loadLeaderboard])
+  await Promise.all([
+    loadBuilderStats(),
+    loadHistory(),
+    loadLeaderboard(),
+  ])
+}, [loadBuilderStats, loadHistory, loadLeaderboard])
 
   useEffect(() => {
     refresh()
